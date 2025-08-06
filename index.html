@@ -51,46 +51,26 @@
             <button class="logout-button" onclick="handleLogout()">ログアウト</button>
         </div>
 
-        <!-- 体重入力セクション -->
+        <!-- ファイルアップロードセクション -->
         <div class="weight-input hidden" id="weightInput">
             <div class="input-card">
-                <h3>⚖️ 体重を記録</h3>
-                <input type="date" class="input-field" id="dateInput">
-                <div style="display: flex; align-items: center; gap: 10px;">
-                    <input type="number" class="input-field" id="weightValue" placeholder="体重 (kg)" step="0.1" min="0" max="300" value="72.0" style="flex: 1;" onkeydown="handleWeightKeypress(event)">
-                    <span style="font-size: 12px; color: #666;">↑↓キーで0.1kg調整</span>
-                </div>
-                
-                <!-- 時間帯選択ボタン -->
-                <div style="margin: 5px 0;">
-                    <h4 style="margin: 5px 0; font-size: 14px;">⏰ 測定タイミング:</h4>
-                    <div style="display: flex; gap: 5px; flex-wrap: wrap;">
-                        <button type="button" class="timing-btn" onclick="selectTiming('朝起床後')" style="background: #ffeaa7; color: #2d3436; border: none; padding: 5px 10px; border-radius: 15px; cursor: pointer; font-size: 12px;">🌅 朝起床後</button>
-                        <button type="button" class="timing-btn" onclick="selectTiming('起床後')" style="background: #55a3ff; color: white; border: none; padding: 5px 10px; border-radius: 15px; cursor: pointer; font-size: 12px;">🛏️ 起床後</button>
-                        <button type="button" class="timing-btn" onclick="selectTiming('トイレ後')" style="background: #74b9ff; color: white; border: none; padding: 5px 10px; border-radius: 15px; cursor: pointer; font-size: 12px;">🚽 トイレ後</button>
-                        <button type="button" class="timing-btn" onclick="selectTiming('風呂前')" style="background: #fd79a8; color: white; border: none; padding: 5px 10px; border-radius: 15px; cursor: pointer; font-size: 12px;">🛁 風呂前</button>
-                        <button type="button" class="timing-btn" onclick="selectTiming('風呂後')" style="background: #00b894; color: white; border: none; padding: 5px 10px; border-radius: 15px; cursor: pointer; font-size: 12px;">🛀 風呂後</button>
-                        <button type="button" class="timing-btn" onclick="selectTiming('食事前')" style="background: #e84393; color: white; border: none; padding: 5px 10px; border-radius: 15px; cursor: pointer; font-size: 12px;">🍽️ 食事前</button>
-                        <button type="button" class="timing-btn" onclick="selectTiming('食事後')" style="background: #a29bfe; color: white; border: none; padding: 5px 10px; border-radius: 15px; cursor: pointer; font-size: 12px;">🍽️ 食事後</button>
-                    </div>
-                    <input type="text" class="input-field" id="selectedTiming" placeholder="選択されたタイミング" readonly style="margin-top: 3px; background: #f8f9fa;">
-                </div>
-                
+                <h3>📄 ファイルをアップロード</h3>
+                <input type="file" class="input-field" id="fileInput" accept=".txt,.md,.csv" multiple>
                 <textarea class="input-field" id="memoInput" placeholder="メモ (オプション)" rows="2"></textarea>
-                <button class="save-button" onclick="saveWeightData()">💾 保存</button>
+                <button class="save-button" onclick="saveFileData()">💾 保存</button>
             </div>
             
             <div class="input-card">
-                <h3>📈 体重履歴</h3>
-                <div class="data-area" id="weightHistory">
-                    体重データを読み込み中...<br>
+                <h3>📂 保存済みファイル</h3>
+                <div class="data-area" id="fileHistory">
+                    ファイルデータを読み込み中...<br>
                 </div>
             </div>
         </div>
 
         <h3>📋 アプリログ <button class="universal-copy-btn" onclick="copyLogs()" style="background: #28a745; color: white; border: none; padding: 4px 8px; border-radius: 3px; cursor: pointer; font-size: 12px;">📋 ログをコピー</button></h3>
         <div class="data-area" id="logArea">
-            体重管理アプリ起動完了...<br>
+            重複チェックツール起動完了...<br>
             🔥 Firebase設定完了<br>
             🔐 Google認証準備完了<br>
         </div>
@@ -161,7 +141,7 @@
             if (user) {
                 log(`✅ ログイン成功: ${user.displayName}`);
                 showUserInterface(user);
-                loadUserWeightData(user.uid);
+                loadUserFileData(user.uid);
             } else {
                 log('❌ ログアウトしました');
                 showLoginInterface();
@@ -190,80 +170,81 @@
             }
         };
 
-        // 体重データ保存
-        window.saveWeightData = async () => {
+        // ファイルデータ保存
+        window.saveFileData = async () => {
             if (!currentUser) {
                 log('❌ ログインが必要です');
                 return;
             }
 
-            const date = document.getElementById('dateInput').value;
-            const weight = document.getElementById('weightValue').value;
+            const fileInput = document.getElementById('fileInput');
             const memo = document.getElementById('memoInput').value;
 
-            if (!date || !weight) {
-                log('❌ 日付と体重を入力してください');
+            if (!fileInput.files || fileInput.files.length === 0) {
+                log('❌ ファイルを選択してください');
                 return;
             }
 
             try {
-                log('💾 体重データを保存中...');
+                log('💾 ファイルデータを保存中...');
                 
                 const now = new Date();
-                const timeString = now.toLocaleTimeString('ja-JP', { 
-                    hour12: false, 
-                    hour: '2-digit', 
-                    minute: '2-digit' 
-                });
-                
-                const weightData = {
-                    date: date,
-                    time: timeString,
-                    weight: parseFloat(weight),
-                    timing: selectedTimingValue || '',
-                    memo: memo || '',
-                    userEmail: currentUser.email,
-                    timestamp: firebase.database.ServerValue.TIMESTAMP,
-                    createdAt: now.toISOString()
-                };
+                const userRef = database.ref(`users/${currentUser.uid}/files`);
 
-                const userRef = database.ref(`users/${currentUser.uid}/weights`);
-                await userRef.push(weightData);
-                log(`✅ 保存完了: ${date} ${timeString} - ${weight}kg ${selectedTimingValue ? `(${selectedTimingValue})` : ''}`);
+                for (let i = 0; i < fileInput.files.length; i++) {
+                    const file = fileInput.files[i];
+                    const fileContent = await readFileContent(file);
+                    
+                    const fileData = {
+                        fileName: file.name,
+                        fileSize: file.size,
+                        fileType: file.type,
+                        content: fileContent,
+                        memo: memo || '',
+                        userEmail: currentUser.email,
+                        timestamp: firebase.database.ServerValue.TIMESTAMP,
+                        createdAt: now.toISOString()
+                    };
+
+                    await userRef.push(fileData);
+                    log(`✅ 保存完了: ${file.name} (${Math.round(file.size/1024)}KB)`);
+                }
                 
-                // 入力フィールドをクリア（体重は72.0に戻す）
-                document.getElementById('weightValue').value = '72.0';
+                // 入力フィールドをクリア
+                fileInput.value = '';
                 document.getElementById('memoInput').value = '';
-                document.getElementById('selectedTiming').value = '';
-                selectedTimingValue = '';
-                
-                // ボタンのスタイルをリセット
-                document.querySelectorAll('.timing-btn').forEach(btn => {
-                    btn.style.opacity = '0.6';
-                    btn.style.transform = 'scale(1)';
-                });
                 
                 // データを再読み込み
-                loadUserWeightData(currentUser.uid);
+                loadUserFileData(currentUser.uid);
             } catch (error) {
                 log(`❌ 保存エラー: ${error.message}`);
             }
         };
 
-        // 体重データ削除
-        window.deleteWeightEntry = async (entryId) => {
+        // ファイル内容を読み取る関数
+        function readFileContent(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = (e) => resolve(e.target.result);
+                reader.onerror = (e) => reject(e);
+                reader.readAsText(file, 'UTF-8');
+            });
+        }
+
+        // ファイルデータ削除
+        window.deleteFileEntry = async (entryId) => {
             if (!currentUser) {
                 log('❌ ログインが必要です');
                 return;
             }
             
-            if (!confirm('この記録を削除しますか？')) {
+            if (!confirm('このファイルを削除しますか？')) {
                 return;
             }
             
             try {
-                log(`🗑️ データ削除中: ${entryId}`);
-                const entryRef = database.ref(`users/${currentUser.uid}/weights/${entryId}`);
+                log(`🗑️ ファイル削除中: ${entryId}`);
+                const entryRef = database.ref(`users/${currentUser.uid}/files/${entryId}`);
                 await entryRef.remove();
                 log(`✅ 削除完了: ${entryId}`);
             } catch (error) {
@@ -271,31 +252,30 @@
             }
         };
 
-        // ユーザーの体重データを読み込み
-        function loadUserWeightData(userId) {
-            const userRef = database.ref(`users/${userId}/weights`);
+        // ユーザーのファイルデータを読み込み
+        function loadUserFileData(userId) {
+            const userRef = database.ref(`users/${userId}/files`);
             userRef.on('value', (snapshot) => {
                 const data = snapshot.val();
-                const historyDiv = document.getElementById('weightHistory');
+                const historyDiv = document.getElementById('fileHistory');
                 
                 if (data) {
                     const entries = Object.entries(data)
                         .map(([key, value]) => ({ id: key, ...value }))
-                        .sort((a, b) => new Date(b.createdAt || b.date) - new Date(a.createdAt || a.date));
+                        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
                     
                     historyDiv.innerHTML = entries.map(entry => {
-                        let displayText = `${entry.date}`;
-                        if (entry.time) displayText += ` ${entry.time}`;
-                        displayText += `: ${entry.weight}kg`;
-                        if (entry.timing) displayText += ` (${entry.timing})`;
+                        const fileSize = Math.round(entry.fileSize / 1024);
+                        const uploadDate = new Date(entry.createdAt).toLocaleDateString('ja-JP');
+                        let displayText = `${entry.fileName} (${fileSize}KB) - ${uploadDate}`;
                         if (entry.memo) displayText += ` - ${entry.memo}`;
-                        return `<div style="display: flex; justify-content: space-between; align-items: center; padding: 2px 0; border-bottom: 1px solid #eee;"><span>${displayText}</span><button onclick="deleteWeightEntry('${entry.id}')" style="background: #dc3545; color: white; border: none; padding: 2px 6px; border-radius: 3px; cursor: pointer; font-size: 10px;">🗑️</button></div>`;
+                        return `<div style="display: flex; justify-content: space-between; align-items: center; padding: 2px 0; border-bottom: 1px solid #eee;"><span>${displayText}</span><button onclick="deleteFileEntry('${entry.id}')" style="background: #dc3545; color: white; border: none; padding: 2px 6px; border-radius: 3px; cursor: pointer; font-size: 10px;">🗑️</button></div>`;
                     }).join('');
                     
-                    log(`📈 体重履歴読み込み完了: ${entries.length}件`);
+                    log(`📂 ファイル履歴読み込み完了: ${entries.length}件`);
                 } else {
-                    historyDiv.innerHTML = 'まだ体重データがありません';
-                    log('📈 体重履歴: データなし');
+                    historyDiv.innerHTML = 'まだファイルデータがありません';
+                    log('📂 ファイル履歴: データなし');
                 }
             });
         }
@@ -548,7 +528,7 @@ ${document.getElementById('logArea').innerText}`;
         };
 
         // 初期化
-        log('🚀 体重管理アプリ起動完了');
+        log('🚀 重複チェックツール起動完了');
         log('🔐 認証システム準備完了');
         
         // プロトコルチェック（自動診断）
