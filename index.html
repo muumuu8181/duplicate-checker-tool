@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>重複チェックツール v0.15</title>
+    <title>重複チェックツール v0.16</title>
     
     <!-- カスタムスタイル -->
     <link rel="stylesheet" href="custom/styles.css">
@@ -36,7 +36,7 @@
 <body>
     <div class="container">
         <div class="app-header">
-            <h1 class="app-title">🔍 重複チェックツール v0.15</h1>
+            <h1 class="app-title">🔍 重複チェックツール v0.16</h1>
             <p class="app-subtitle">テキスト重複検出システム - Firebase + Google認証</p>
         </div>
         <!-- 認証セクション -->
@@ -51,16 +51,43 @@
             <button class="logout-button" onclick="handleLogout()">ログアウト</button>
         </div>
 
-        <!-- ファイルアップロードセクション -->
+        <!-- データ入力セクション -->
         <div class="weight-input hidden" id="weightInput">
             <div class="input-card">
-                <h3>📄 ファイルをアップロード</h3>
-                <div id="dropZone" style="border: 2px dashed #ddd; border-radius: 10px; padding: 20px; text-align: center; margin: 10px 0; background: #f9f9f9; transition: all 0.3s;">
-                    <p>📁 ファイルをドラッグ&ドロップするか、下のボタンから選択してください</p>
-                    <input type="file" class="input-field" id="fileInput" accept=".txt,.md,.csv" multiple>
+                <h3>📄 データを入力</h3>
+                
+                <!-- 入力方法選択 -->
+                <div style="margin: 10px 0;">
+                    <h4 style="margin: 5px 0; font-size: 14px;">📝 入力方法を選択:</h4>
+                    <div style="display: flex; gap: 10px; margin: 5px 0;">
+                        <button type="button" id="fileInputBtn" class="method-btn" onclick="selectInputMethod('file')" style="background: #007bff; color: white; border: none; padding: 8px 16px; border-radius: 20px; cursor: pointer; font-size: 14px;">📁 ファイル</button>
+                        <button type="button" id="textInputBtn" class="method-btn" onclick="selectInputMethod('text')" style="background: #6c757d; color: white; border: none; padding: 8px 16px; border-radius: 20px; cursor: pointer; font-size: 14px;">📝 テキスト</button>
+                    </div>
                 </div>
+
+                <!-- ファイル入力エリア -->
+                <div id="fileInputArea">
+                    <div id="dropZone" style="border: 2px dashed #ddd; border-radius: 10px; padding: 20px; text-align: center; margin: 10px 0; background: #f9f9f9; transition: all 0.3s;">
+                        <p>📁 ファイルをドラッグ&ドロップするか、下のボタンから選択してください</p>
+                        <input type="file" class="input-field" id="fileInput" accept=".txt,.md,.csv" multiple>
+                    </div>
+                </div>
+
+                <!-- テキスト入力エリア -->
+                <div id="textInputArea" class="hidden">
+                    <div style="border: 2px solid #ddd; border-radius: 10px; padding: 10px; margin: 10px 0; background: #f9f9f9;">
+                        <p style="margin: 0 0 10px 0; color: #666; font-size: 14px;">✏️ テキストを直接入力またはクリップボードから貼り付けてください</p>
+                        <input type="text" class="input-field" id="textTitle" placeholder="タイトルを入力してください" style="margin-bottom: 10px;">
+                        <textarea class="input-field" id="textContent" placeholder="ここにテキストを入力または貼り付けてください..." rows="8" style="resize: vertical;"></textarea>
+                        <div style="text-align: right; margin-top: 5px;">
+                            <button type="button" onclick="pasteFromClipboard()" style="background: #28a745; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 12px;">📋 クリップボードから貼り付け</button>
+                            <button type="button" onclick="clearTextInput()" style="background: #6c757d; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 12px; margin-left: 5px;">🗑️ クリア</button>
+                        </div>
+                    </div>
+                </div>
+
                 <textarea class="input-field" id="memoInput" placeholder="メモ (オプション)" rows="2"></textarea>
-                <button class="save-button" onclick="saveFileData()">💾 保存</button>
+                <button class="save-button" onclick="saveData()">💾 保存</button>
             </div>
             
             <div class="input-card">
@@ -113,6 +140,52 @@
 
         let currentUser = null;
         let selectedTimingValue = '';
+        let inputMethod = 'file'; // デフォルトはファイル入力
+
+        // 入力方法選択機能
+        window.selectInputMethod = (method) => {
+            inputMethod = method;
+            const fileArea = document.getElementById('fileInputArea');
+            const textArea = document.getElementById('textInputArea');
+            const fileBtn = document.getElementById('fileInputBtn');
+            const textBtn = document.getElementById('textInputBtn');
+
+            if (method === 'file') {
+                fileArea.classList.remove('hidden');
+                textArea.classList.add('hidden');
+                fileBtn.style.background = '#007bff';
+                textBtn.style.background = '#6c757d';
+                log('📁 ファイル入力モードに切り替え');
+            } else {
+                fileArea.classList.add('hidden');
+                textArea.classList.remove('hidden');
+                fileBtn.style.background = '#6c757d';
+                textBtn.style.background = '#007bff';
+                log('📝 テキスト入力モードに切り替え');
+            }
+        };
+
+        // クリップボードから貼り付け
+        window.pasteFromClipboard = async () => {
+            try {
+                const text = await navigator.clipboard.readText();
+                document.getElementById('textContent').value = text;
+                log(`📋 クリップボードから${text.length}文字を貼り付けました`);
+            } catch (error) {
+                log('❌ クリップボードからの貼り付けに失敗しました');
+                // フォールバック: 手動貼り付けを促す
+                const textarea = document.getElementById('textContent');
+                textarea.focus();
+                alert('Ctrl+V で手動で貼り付けてください');
+            }
+        };
+
+        // テキスト入力クリア
+        window.clearTextInput = () => {
+            document.getElementById('textTitle').value = '';
+            document.getElementById('textContent').value = '';
+            log('🗑️ テキスト入力をクリアしました');
+        };
 
         // ドラッグ&ドロップ機能の設定
         function setupDragAndDrop() {
@@ -210,55 +283,100 @@
             }
         };
 
-        // ファイルデータ保存
-        window.saveFileData = async () => {
+        // 統合データ保存機能
+        window.saveData = async () => {
             if (!currentUser) {
                 log('❌ ログインが必要です');
                 return;
             }
 
-            const fileInput = document.getElementById('fileInput');
             const memo = document.getElementById('memoInput').value;
 
-            if (!fileInput.files || fileInput.files.length === 0) {
-                log('❌ ファイルを選択してください');
-                return;
-            }
+            if (inputMethod === 'file') {
+                // ファイル保存処理
+                const fileInput = document.getElementById('fileInput');
+                if (!fileInput.files || fileInput.files.length === 0) {
+                    log('❌ ファイルを選択してください');
+                    return;
+                }
 
-            try {
-                log('💾 ファイルデータを保存中...');
-                
-                const now = new Date();
-                const userRef = database.ref(`users/${currentUser.uid}/files`);
-
-                for (let i = 0; i < fileInput.files.length; i++) {
-                    const file = fileInput.files[i];
-                    const fileContent = await readFileContent(file);
+                try {
+                    log('💾 ファイルデータを保存中...');
                     
-                    const fileData = {
-                        fileName: file.name,
-                        fileSize: file.size,
-                        fileType: file.type,
-                        content: fileContent,
+                    const now = new Date();
+                    const userRef = database.ref(`users/${currentUser.uid}/files`);
+
+                    for (let i = 0; i < fileInput.files.length; i++) {
+                        const file = fileInput.files[i];
+                        const fileContent = await readFileContent(file);
+                        
+                        const fileData = {
+                            fileName: file.name,
+                            fileSize: file.size,
+                            fileType: file.type,
+                            content: fileContent,
+                            memo: memo || '',
+                            userEmail: currentUser.email,
+                            timestamp: firebase.database.ServerValue.TIMESTAMP,
+                            createdAt: now.toISOString(),
+                            inputType: 'file'
+                        };
+
+                        await userRef.push(fileData);
+                        log(`✅ 保存完了: ${file.name} (${Math.round(file.size/1024)}KB)`);
+                    }
+                    
+                    // 入力フィールドをクリア
+                    fileInput.value = '';
+                    
+                } catch (error) {
+                    log(`❌ ファイル保存エラー: ${error.message}`);
+                    return;
+                }
+            } else {
+                // テキスト保存処理
+                const title = document.getElementById('textTitle').value;
+                const content = document.getElementById('textContent').value;
+
+                if (!title.trim() || !content.trim()) {
+                    log('❌ タイトルと内容を入力してください');
+                    return;
+                }
+
+                try {
+                    log('💾 テキストデータを保存中...');
+                    
+                    const now = new Date();
+                    const userRef = database.ref(`users/${currentUser.uid}/files`);
+                    
+                    const textData = {
+                        fileName: title.trim(),
+                        fileSize: new Blob([content]).size,
+                        fileType: 'text/plain',
+                        content: content.trim(),
                         memo: memo || '',
                         userEmail: currentUser.email,
                         timestamp: firebase.database.ServerValue.TIMESTAMP,
-                        createdAt: now.toISOString()
+                        createdAt: now.toISOString(),
+                        inputType: 'text'
                     };
 
-                    await userRef.push(fileData);
-                    log(`✅ 保存完了: ${file.name} (${Math.round(file.size/1024)}KB)`);
+                    await userRef.push(textData);
+                    log(`✅ 保存完了: ${title.trim()} (${Math.round(textData.fileSize/1024)}KB)`);
+                    
+                    // 入力フィールドをクリア
+                    document.getElementById('textTitle').value = '';
+                    document.getElementById('textContent').value = '';
+                    
+                } catch (error) {
+                    log(`❌ テキスト保存エラー: ${error.message}`);
+                    return;
                 }
-                
-                // 入力フィールドをクリア
-                fileInput.value = '';
-                document.getElementById('memoInput').value = '';
-                
-                // データを再読み込み
-                loadUserFileData(currentUser.uid);
-            } catch (error) {
-                log(`❌ 保存エラー: ${error.message}`);
             }
+
+            // 共通処理
+            document.getElementById('memoInput').value = '';
+            loadUserFileData(currentUser.uid);
         };
 
         // ファイル内容を読み取る関数
@@ -307,7 +425,8 @@
                     historyDiv.innerHTML = entries.map(entry => {
                         const fileSize = Math.round(entry.fileSize / 1024);
                         const uploadDate = new Date(entry.createdAt).toLocaleDateString('ja-JP');
-                        let displayText = `${entry.fileName} (${fileSize}KB) - ${uploadDate}`;
+                        const inputTypeIcon = entry.inputType === 'text' ? '📝' : '📁';
+                        let displayText = `${inputTypeIcon} ${entry.fileName} (${fileSize}KB) - ${uploadDate}`;
                         if (entry.memo) displayText += ` - ${entry.memo}`;
                         return `<div style="display: flex; justify-content: space-between; align-items: center; padding: 2px 0; border-bottom: 1px solid #eee;">
                             <span style="cursor: pointer; flex: 1;" onclick="showFileContent('${entry.id}', '${entry.fileName}', \`${entry.content.replace(/`/g, '\\`').replace(/\\/g, '\\\\')}\`)">${displayText}</span>
