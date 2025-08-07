@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>重複チェックツール v0.23</title>
+    <title>重複チェックツール v0.24</title>
     
     <!-- カスタムスタイル -->
     <link rel="stylesheet" href="custom/styles.css">
@@ -32,47 +32,92 @@
         .hidden { display: none; }
         .user-info { background: #d4edda; color: #155724; padding: 6px; border-radius: 5px; margin-bottom: 8px; }
         
-        /* サイドバータブのスタイル */
-        .main-layout { display: flex; gap: 20px; }
-        .sidebar-tabs { 
-            width: 200px; 
-            background: #f8f9fa; 
-            border-radius: 10px; 
-            padding: 10px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        /* 固定ヘッダーのスタイル */
+        .fixed-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            z-index: 1000;
+            padding: 15px;
         }
-        .sidebar-tab-button {
-            width: 100%;
+        .header-content {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .header-tabs {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .header-tab-button {
             background: #6c757d;
             color: white;
             border: none;
-            padding: 12px 16px;
+            padding: 8px 16px;
             border-radius: 5px;
             cursor: pointer;
-            margin-bottom: 10px;
-            text-align: left;
             font-size: 14px;
             transition: all 0.3s;
         }
-        .sidebar-tab-button:hover {
+        .header-tab-button:hover {
             background: #5a6268;
-            transform: translateX(5px);
+            transform: translateY(-2px);
         }
-        .sidebar-tab-button.active {
+        .header-tab-button.active {
             background: #007bff;
             box-shadow: 0 2px 5px rgba(0,123,255,0.3);
         }
-        .content-area {
-            flex: 1;
+        .main-content {
+            margin-top: 140px; /* ヘッダーの高さ分の余白 */
+            padding: 15px;
+        }
+        @media (max-width: 600px) {
+            .header-tabs {
+                gap: 5px;
+            }
+            .header-tab-button {
+                padding: 6px 12px;
+                font-size: 12px;
+            }
+            .main-content {
+                margin-top: 160px;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="app-header">
-            <h1 class="app-title">🔍 重複チェックツール v0.23</h1>
-            <p class="app-subtitle">テキスト重複検出システム - Firebase + Google認証</p>
+    <!-- 固定ヘッダー -->
+    <div class="fixed-header">
+        <div class="header-content">
+            <div class="app-header" style="text-align: center;">
+                <h1 class="app-title" style="margin: 0;">🔍 重複チェックツール v0.24</h1>
+                <p class="app-subtitle" style="margin: 5px 0;">テキスト重複検出システム - Firebase + Google認証</p>
+            </div>
+            <!-- ヘッダータブ -->
+            <div class="header-tabs">
+                <button class="header-tab-button active" onclick="switchTab('duplicate')">
+                    🔍 重複チェック
+                </button>
+                <button class="header-tab-button" onclick="switchTab('other')">
+                    📋 その他機能
+                </button>
+                <button class="header-tab-button" onclick="switchTab('settings')">
+                    ⚙️ 設定
+                </button>
+                <button class="header-tab-button" onclick="switchTab('help')">
+                    ❓ ヘルプ
+                </button>
+            </div>
         </div>
+    </div>
+
+    <!-- メインコンテンツ -->
+    <div class="container main-content">
         <!-- 認証セクション -->
         <div class="auth-section" id="authSection">
             <h3>🔐 ログイン</h3>
@@ -85,29 +130,8 @@
             <button class="logout-button" onclick="handleLogout()">ログアウト</button>
         </div>
 
-        <!-- メインレイアウト（サイドバー + コンテンツ） -->
-        <div class="main-layout">
-            <!-- 左側のサイドバータブ -->
-            <div class="sidebar-tabs">
-                <h4 style="margin: 0 0 15px 5px; color: #333;">📋 メニュー</h4>
-                <button class="sidebar-tab-button active" onclick="switchTab('duplicate')">
-                    🔍 重複チェック
-                </button>
-                <button class="sidebar-tab-button" onclick="switchTab('other')">
-                    📋 その他機能
-                </button>
-                <button class="sidebar-tab-button" onclick="switchTab('settings')">
-                    ⚙️ 設定
-                </button>
-                <button class="sidebar-tab-button" onclick="switchTab('help')">
-                    ❓ ヘルプ
-                </button>
-            </div>
-
-            <!-- 右側のコンテンツエリア -->
-            <div class="content-area">
-                <!-- データ入力セクション -->
-                <div class="weight-input hidden tab-content" id="weightInput" data-tab="duplicate">
+        <!-- データ入力セクション -->
+        <div class="weight-input hidden tab-content" id="weightInput" data-tab="duplicate">
             <div class="input-card">
                 <h3>📄 データを入力</h3>
                 
@@ -208,11 +232,9 @@
                             <li>キーワードで検索</li>
                             <li>vol番号が自動的に表示されます</li>
                         </ol>
-                        <p>バージョン: v0.23</p>
+                        <p>バージョン: v0.24</p>
                     </div>
                 </div>
-            </div>
-        </div>
 
         <!-- ファイル内容表示エリア -->
         <div class="hidden" id="fileContentSection">
@@ -600,8 +622,8 @@
                 content.classList.add('hidden');
             });
             
-            // すべてのサイドバーボタンのスタイルをリセット
-            document.querySelectorAll('.sidebar-tab-button').forEach(button => {
+            // すべてのヘッダーボタンのスタイルをリセット
+            document.querySelectorAll('.header-tab-button').forEach(button => {
                 button.classList.remove('active');
             });
             
@@ -615,7 +637,13 @@
             
             if (tabMap[tabName]) {
                 document.getElementById(tabMap[tabName].element).classList.remove('hidden');
-                document.querySelector(`[onclick="switchTab('${tabName}')"]`).classList.add('active');
+                // ヘッダーボタンのアクティブ状態を更新
+                const buttons = document.querySelectorAll('.header-tab-button');
+                buttons.forEach(btn => {
+                    if (btn.getAttribute('onclick').includes(tabName)) {
+                        btn.classList.add('active');
+                    }
+                });
                 log(tabMap[tabName].log);
             }
         };
