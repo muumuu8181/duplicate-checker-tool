@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>重複チェックツール v0.19</title>
+    <title>重複チェックツール v0.20</title>
     
     <!-- カスタムスタイル -->
     <link rel="stylesheet" href="custom/styles.css">
@@ -36,7 +36,7 @@
 <body>
     <div class="container">
         <div class="app-header">
-            <h1 class="app-title">🔍 重複チェックツール v0.19</h1>
+            <h1 class="app-title">🔍 重複チェックツール v0.20</h1>
             <p class="app-subtitle">テキスト重複検出システム - Firebase + Google認証</p>
         </div>
         <!-- 認証セクション -->
@@ -565,6 +565,11 @@
                     const keywordLower = keyword.toLowerCase();
                     
                     if (contentLower.includes(keywordLower)) {
+                        // vol. xxxxパターンを抽出
+                        const volPattern = /vol\.?\s*(\d{4})/gi;
+                        const volMatch = file.content.match(volPattern);
+                        const volNumber = volMatch ? volMatch[0] : null;
+                        
                         // キーワードを含む行を抽出（前後2行も含む）
                         const lines = file.content.split('\n');
                         const matchingLines = [];
@@ -585,7 +590,8 @@
                         if (matchingLines.length > 0) {
                             searchResults.push({
                                 ...file,
-                                matches: matchingLines
+                                matches: matchingLines,
+                                volNumber: volNumber
                             });
                         }
                     }
@@ -626,9 +632,17 @@
                     
                     const moreMatches = file.matches.length > 3 ? `<small style="color: #666;">...他 ${file.matches.length - 3} 件のマッチ</small>` : '';
                     
+                    // vol番号の表示
+                    const volDisplay = file.volNumber ? 
+                        `<span style="background: #e3f2fd; color: #1976d2; padding: 2px 8px; border-radius: 12px; font-weight: bold; margin-left: 10px;">${file.volNumber}</span>` : 
+                        '';
+                    
                     return `<div style="border: 1px solid #ddd; border-radius: 8px; padding: 12px; margin: 8px 0;">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                            <strong>${inputTypeIcon} ${file.fileName}</strong>
+                            <div>
+                                <strong>${inputTypeIcon} ${file.fileName}</strong>
+                                ${volDisplay}
+                            </div>
                             <small style="color: #666;">${fileSize}KB - ${uploadDate}</small>
                         </div>
                         <div style="color: #17a2b8; font-size: 14px; margin-bottom: 8px;">
