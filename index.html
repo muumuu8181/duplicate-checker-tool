@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>重複チェックツール v0.1</title>
+    <title>重複チェックツール v0.15</title>
     
     <!-- カスタムスタイル -->
     <link rel="stylesheet" href="custom/styles.css">
@@ -36,7 +36,7 @@
 <body>
     <div class="container">
         <div class="app-header">
-            <h1 class="app-title">🔍 重複チェックツール v0.1</h1>
+            <h1 class="app-title">🔍 重複チェックツール v0.15</h1>
             <p class="app-subtitle">テキスト重複検出システム - Firebase + Google認証</p>
         </div>
         <!-- 認証セクション -->
@@ -55,7 +55,10 @@
         <div class="weight-input hidden" id="weightInput">
             <div class="input-card">
                 <h3>📄 ファイルをアップロード</h3>
-                <input type="file" class="input-field" id="fileInput" accept=".txt,.md,.csv" multiple>
+                <div id="dropZone" style="border: 2px dashed #ddd; border-radius: 10px; padding: 20px; text-align: center; margin: 10px 0; background: #f9f9f9; transition: all 0.3s;">
+                    <p>📁 ファイルをドラッグ&ドロップするか、下のボタンから選択してください</p>
+                    <input type="file" class="input-field" id="fileInput" accept=".txt,.md,.csv" multiple>
+                </div>
                 <textarea class="input-field" id="memoInput" placeholder="メモ (オプション)" rows="2"></textarea>
                 <button class="save-button" onclick="saveFileData()">💾 保存</button>
             </div>
@@ -65,6 +68,13 @@
                 <div class="data-area" id="fileHistory">
                     ファイルデータを読み込み中...<br>
                 </div>
+            </div>
+        </div>
+
+        <!-- ファイル内容表示エリア -->
+        <div class="hidden" id="fileContentSection">
+            <h3>📝 ファイル内容プレビュー <button class="universal-copy-btn" onclick="hideFileContent()" style="background: #6c757d; color: white; border: none; padding: 4px 8px; border-radius: 3px; cursor: pointer; font-size: 12px;">✖ 閉じる</button></h3>
+            <div class="data-area" id="fileContentDisplay">
             </div>
         </div>
 
@@ -103,6 +113,36 @@
 
         let currentUser = null;
         let selectedTimingValue = '';
+
+        // ドラッグ&ドロップ機能の設定
+        function setupDragAndDrop() {
+            const dropZone = document.getElementById('dropZone');
+            const fileInput = document.getElementById('fileInput');
+
+            // ドラッグオーバー時のスタイル変更
+            dropZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                dropZone.style.borderColor = '#007bff';
+                dropZone.style.backgroundColor = '#e3f2fd';
+            });
+
+            dropZone.addEventListener('dragleave', (e) => {
+                e.preventDefault();
+                dropZone.style.borderColor = '#ddd';
+                dropZone.style.backgroundColor = '#f9f9f9';
+            });
+
+            // ファイルドロップ時の処理
+            dropZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropZone.style.borderColor = '#ddd';
+                dropZone.style.backgroundColor = '#f9f9f9';
+                
+                const files = e.dataTransfer.files;
+                fileInput.files = files;
+                log(`📁 ${files.length}個のファイルがドロップされました`);
+            });
+        }
 
         // キーボードでの体重調整機能
         window.handleWeightKeypress = (event) => {
@@ -269,7 +309,10 @@
                         const uploadDate = new Date(entry.createdAt).toLocaleDateString('ja-JP');
                         let displayText = `${entry.fileName} (${fileSize}KB) - ${uploadDate}`;
                         if (entry.memo) displayText += ` - ${entry.memo}`;
-                        return `<div style="display: flex; justify-content: space-between; align-items: center; padding: 2px 0; border-bottom: 1px solid #eee;"><span>${displayText}</span><button onclick="deleteFileEntry('${entry.id}')" style="background: #dc3545; color: white; border: none; padding: 2px 6px; border-radius: 3px; cursor: pointer; font-size: 10px;">🗑️</button></div>`;
+                        return `<div style="display: flex; justify-content: space-between; align-items: center; padding: 2px 0; border-bottom: 1px solid #eee;">
+                            <span style="cursor: pointer; flex: 1;" onclick="showFileContent('${entry.id}', '${entry.fileName}', \`${entry.content.replace(/`/g, '\\`').replace(/\\/g, '\\\\')}\`)">${displayText}</span>
+                            <button onclick="deleteFileEntry('${entry.id}')" style="background: #dc3545; color: white; border: none; padding: 2px 6px; border-radius: 3px; cursor: pointer; font-size: 10px;">🗑️</button>
+                        </div>`;
                     }).join('');
                     
                     log(`📂 ファイル履歴読み込み完了: ${entries.length}件`);
@@ -287,15 +330,8 @@
             document.getElementById('weightInput').classList.remove('hidden');
             document.getElementById('userName').textContent = user.displayName;
             
-            // 今日の日付と体重デフォルト値を設定
-            const today = new Date().toISOString().split('T')[0];
-            document.getElementById('dateInput').value = today;
-            document.getElementById('weightValue').value = '72.0';
-            
-            // タイミングボタンの初期状態設定
-            document.querySelectorAll('.timing-btn').forEach(btn => {
-                btn.style.opacity = '0.6';
-            });
+            // ドラッグ&ドロップ機能を初期化
+            setupDragAndDrop();
         }
 
         function showLoginInterface() {
@@ -303,6 +339,28 @@
             document.getElementById('userInfo').classList.add('hidden');
             document.getElementById('weightInput').classList.add('hidden');
         }
+
+        // ファイル内容表示機能
+        window.showFileContent = (fileId, fileName, content) => {
+            const contentSection = document.getElementById('fileContentSection');
+            const displayArea = document.getElementById('fileContentDisplay');
+            
+            // ファイル内容の最初の5行を取得
+            const lines = content.split('\n').slice(0, 5);
+            const previewContent = lines.join('\n');
+            const hasMore = content.split('\n').length > 5;
+            
+            displayArea.innerHTML = `<strong>📄 ${fileName}</strong><br><br><pre style="white-space: pre-wrap; font-family: monospace; background: #f8f9fa; padding: 10px; border-radius: 5px;">${previewContent}${hasMore ? '\n\n... (続きがあります)' : ''}</pre>`;
+            
+            contentSection.classList.remove('hidden');
+            log(`📝 ファイル内容表示: ${fileName}`);
+        };
+
+        // ファイル内容非表示
+        window.hideFileContent = () => {
+            document.getElementById('fileContentSection').classList.add('hidden');
+            log('📝 ファイル内容を非表示にしました');
+        };
 
         // ログ出力関数
         function log(message) {
