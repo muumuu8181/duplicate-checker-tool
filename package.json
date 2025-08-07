@@ -1,8 +1,8 @@
 {
-  "name": "universal-template-system",
-  "version": "0.01.0",
-  "description": "よっぽどの馬鹿でも使えるUniversalテンプレートシステム - カップラーメン方式",
-  "main": "universal-system/core/universal-template.js",
+  "name": "duplicate-checker-tool",
+  "version": "0.19.0",
+  "description": "Firebase + Google認証によるテキスト重複検出システム - Universal Template採用",
+  "main": "index.html",
   "scripts": {
     "init": "node universal-system/core/universal-template.js",
     "start": "npm run init && echo '🎉 Universal Template v0.01 起動完了'",
@@ -21,20 +21,19 @@
     "help": "echo '🚀 Universal Template v0.01 - カップラーメン方式\\n\\n🚨 開発前必読: MANDATORY_REQUIREMENTS.md\\n\\n基本コマンド:\\n  npm start     # お湯を注ぐだけ - 全自動セットアップ\\n  npm test      # 全機能テスト (報告前必須)\\n  npm run dev   # 開発モード\\n\\n📋 必須要件:\\n  1. Firebase Database 必須使用\\n  2. Google認証 必須実装\\n  3. テスト実行 必須確認\\n  4. ログ・コピー機能 除去禁止\\n  5. Core部分 変更禁止\\n\\n詳細ヘルプ:\\n  node tools/testing/ui-test-runner.js --help'"
   },
   "keywords": [
+    "duplicate-checker",
+    "text-analysis",
+    "file-management",
+    "firebase",
+    "google-auth",
     "universal-template",
-    "foolproof-setup",
-    "firebase-auto-config",
-    "copy-buttons",
-    "junior-developer-proof",
-    "cup-noodles-simplicity",
-    "100-developer-compatible",
+    "knowledge-base",
+    "document-archive",
+    "search-tool",
     "testing",
     "automation",
     "ui-testing",
-    "data-storage",
-    "jsdom",
-    "python",
-    "nodejs"
+    "data-storage"
   ],
   "author": "Template Project",
   "license": "MIT",
@@ -51,10 +50,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/muumuu8181/0000-00-00-project-template.git"
+    "url": "https://github.com/[your-username]/duplicate-checker-tool.git"
   },
-  "homepage": "https://github.com/muumuu8181/0000-00-00-project-template",
+  "homepage": "https://github.com/[your-username]/duplicate-checker-tool",
   "bugs": {
-    "url": "https://github.com/muumuu8181/0000-00-00-project-template/issues"
+    "url": "https://github.com/[your-username]/duplicate-checker-tool/issues"
   }
 }

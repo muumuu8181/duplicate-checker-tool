@@ -4,15 +4,15 @@
 
 export const APP_CONFIG = {
     // アプリの基本情報（自由に変更可能）
-    name: "体重管理アプリ",
-    version: "0.2",
-    description: "Firebase + Google認証による個人用体重管理アプリ",
+    name: "重複チェックツール",
+    version: "0.19",
+    description: "Firebase + Google認証によるテキスト重複検出システム",
     
     // デフォルト値設定（カスタマイズ可能）
     defaults: {
-        weight: 72.0,
-        unit: "kg",
-        precision: 1 // 小数点以下桁数
+        maxFileSize: 10485760, // 10MB
+        allowedFileTypes: [".txt", ".md", ".csv"],
+        autoTitleLength: 30 // 自動タイトルの最大文字数
     },
     
     // UI設定（カスタマイズ可能）
@@ -24,22 +24,25 @@ export const APP_CONFIG = {
             backgroundColor: "#f8f9fa"
         },
         
-        // 測定タイミングボタン（自由に変更・追加可能）
-        timingButtons: [
-            { id: "morning", label: "🌅 朝起床後", color: "#ffc107" },
-            { id: "toilet", label: "🚽 トイレ後", color: "#17a2b8" },
-            { id: "before_bath", label: "🛁 風呂前", color: "#fd7e14" },
-            { id: "after_bath", label: "🛀 風呂後", color: "#20c997" },
-            { id: "before_meal", label: "🍽️ 食事前", color: "#e83e8c" },
-            { id: "after_meal", label: "🍴 食事後", color: "#6f42c1" }
+        // 入力方法ボタン（自由に変更・追加可能）
+        inputMethods: [
+            { id: "file", label: "📁 ファイル", color: "#007bff" },
+            { id: "text", label: "📝 テキスト", color: "#6c757d" }
+        ],
+        
+        // クイックアクションボタン（カスタマイズ可能）
+        quickActions: [
+            { id: "paste", label: "📋 貼り付け", color: "#28a745" },
+            { id: "clear", label: "🗑️ クリア", color: "#6c757d" },
+            { id: "search", label: "🔍 検索", color: "#17a2b8" }
         ],
         
         // キーボードショートカット設定（カスタマイズ可能）
         keyboard: {
-            increment: "ArrowUp",      // 体重増加
-            decrement: "ArrowDown",    // 体重減少
-            save: "Enter",             // データ保存
-            step: 0.1                  // 調整単位
+            search: "Ctrl+F",          // 検索開始
+            save: "Ctrl+S",            // データ保存
+            paste: "Ctrl+V",           // 貼り付け
+            clear: "Escape"            // クリア
         },
         
         // 表示設定
@@ -53,13 +56,13 @@ export const APP_CONFIG = {
     // データ設定（カスタマイズ可能）
     data: {
         // Firebase Collection名（変更する場合は注意）
-        collection: "weights",
+        collection: "files",
         
         // 必須フィールド
-        requiredFields: ["weight", "date", "time"],
+        requiredFields: ["fileName", "content", "fileType"],
         
         // オプションフィールド
-        optionalFields: ["timing", "memo", "userEmail"]
+        optionalFields: ["memo", "userEmail", "fileSize", "inputType"]
     }
 };
 

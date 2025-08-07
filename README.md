@@ -1,33 +1,32 @@
-# 📊 体重管理アプリ v0.2 - Core/Custom分離版
+# 🔍 重複チェックツール v0.19 - Core/Custom分離版
 
-Firebase + Google認証による個人用体重管理アプリです。**Core/Custom分離構造**により、安全で効率的なカスタマイズが可能になりました。
+Firebase + Google認証によるテキスト重複検出システムです。**Core/Custom分離構造**により、安全で効率的なカスタマイズが可能になりました。
 
 ## 🌟 主要機能
 
 ### 📊 基本機能
-- **体重記録**: 日付・時刻・体重・測定タイミング・メモを記録
+- **📁 ファイル管理**: テキストファイル・MDファイル・CSVファイルの保存と管理
+- **📝 テキスト入力**: クリップボードから直接貼り付け、自動タイトル生成
+- **🔍 キーワード検索**: 保存したファイル内の全文検索機能
 - **🔐 Google認証**: 安全なGoogle OAuth認証システム
 - **🔄 リアルタイム同期**: Firebase Realtime Databaseによるデバイス間同期
-- **⌨️ キーボード操作**: ↑↓キーで0.1kg単位の調整
-- **📈 履歴表示**: 時系列での体重履歴確認
 
-### 🎨 Core/Custom分離構造 (v0.2の新機能)
+### 🎨 Core/Custom分離構造
 - **🚫 Core フォルダ**: 触ってはいけない安全領域（Firebase設定・GitHub Actions等）
 - **✅ Custom フォルダ**: 自由にカスタマイズ可能（色・ボタン・動作設定）
-- **🔧 簡単変更**: 他のアプリ（食事記録・運動記録等）への転用が容易
+- **🔧 簡単変更**: 他のツール（文書管理・ナレッジベース等）への転用が容易
 - **🛡️ 安全性**: 誤った変更による動作不良を防止
 
-### 🔘 測定タイミング（カスタマイズ可能）
-- 🌅 朝起床後
-- 🚽 トイレ後  
-- 🛁 風呂前
-- 🛀 風呂後
-- 🍽️ 食事前/後
+### 💡 使用シーン
+- 📚 ドキュメントの重複チェック
+- 📧 メールマガジンのアーカイブ
+- 📝 テキストデータの一元管理
+- 🔍 過去の記録から特定情報の検索
 
 ## 🚀 使用方法
 
 ### ライブデモ
-**https://muumuu8181.github.io/weight-management-app/**
+**https://[your-username].github.io/duplicate-checker-tool/**
 
 ### ローカル実行
 1. HTTPサーバーを起動：
@@ -43,7 +42,7 @@ Firebase + Google認証による個人用体重管理アプリです。**Core/Cu
 
 3. Googleアカウントでログイン
 
-4. 体重を入力して保存
+4. ファイルをアップロードまたはテキストを入力して保存
 
 ## 🔧 技術仕様
 
@@ -59,14 +58,16 @@ Firebase + Google認証による個人用体重管理アプリです。**Core/Cu
 {
   "users": {
     "userId": {
-      "weights": {
+      "files": {
         "recordId": {
-          "date": "2025-08-06",
-          "time": "20:30",
-          "weight": 72.5,
-          "timing": "風呂後",
-          "memo": "夕食後",
+          "fileName": "document.txt",
+          "fileSize": 2048,
+          "fileType": "text/plain",
+          "content": "ファイルの内容...",
+          "memo": "重要な文書",
           "timestamp": 1722944530000,
+          "createdAt": "2025-08-07T15:00:00.000Z",
+          "inputType": "file",
           "userEmail": "user@example.com"
         }
       }
@@ -87,17 +88,20 @@ Firebase + Google認証による個人用体重管理アプリです。**Core/Cu
 ### 🔧 フォルダ構成
 
 ```
-weight-management-app/
+duplicate-checker-tool/
 ├── core/                           # 🚫 触ってはいけない領域
 │   ├── .github/                   # GitHub Actions設定
 │   │   └── workflows/
 │   │       └── pages.yml          # GitHub Pages自動デプロイ
 │   ├── src/                       # Core Firebase設定
-│   │   └── firebase-config.js     # Firebase認証・DB設定
+│   │   └── firebase-config.js     # Firebase認証・DB設定（未使用）
 │   └── universal-system/          # Universal Template システム
 ├── custom/                         # ✅ 自由にカスタマイズ可能
-│   ├── app-config.js              # アプリ設定（色・ボタン・動作等）
+│   ├── app-config.js              # アプリ設定（UIテキスト・動作設定）
 │   └── styles.css                 # カスタムCSS（デザイン全般）
+├── tools/                          # 🔧 便利ツール
+│   ├── data-storage/              # データストレージツール
+│   └── testing/                   # テストツール
 ├── index.html                      # メインアプリファイル
 └── README.md                       # このファイル
 ```
@@ -126,21 +130,21 @@ weight-management-app/
 
 ### 🎯 カスタマイズ例
 
-#### 食事記録アプリに変更
-1. `custom/app-config.js` で：アプリ名・タイミングボタンを食事関連に変更
-2. `custom/styles.css` で：カラーテーマを食事系に変更
-3. `index.html` で：表示テキストを食事関連に変更（**Firebase設定は変更禁止**）
+#### ナレッジベースツールに変更
+1. `custom/app-config.js` で：アプリ名・UIテキストをナレッジベース関連に変更
+2. `custom/styles.css` で：カラーテーマを知識管理系に変更
+3. `index.html` で：表示テキストを情報管理関連に変更（**Firebase設定は変更禁止**）
 
-#### 運動記録アプリに変更
-1. `custom/app-config.js` で：アプリ名・ボタンを運動関連に変更
-2. `custom/styles.css` で：スポーツ系カラーテーマに変更
+#### 文書アーカイブツールに変更
+1. `custom/app-config.js` で：アプリ名・設定を文書保管関連に変更
+2. `custom/styles.css` で：アーカイブ系カラーテーマに変更
 
 ## ⚡ 開発ワークフロー
 
 1. **カスタマイズ** → `custom/` フォルダのみ編集
 2. **テスト** → ローカルでHTTPサーバー起動
 3. **デプロイ** → `git push` で自動デプロイ
-4. **確認** → https://muumuu8181.github.io/weight-management-app/
+4. **確認** → https://[your-username].github.io/duplicate-checker-tool/
 
 ## 🛡️ 保護メカニズム
 
@@ -151,27 +155,39 @@ weight-management-app/
 
 ## 🎯 開発情報
 
-- **バージョン**: v0.2
-- **作成日**: 2025-08-06
+- **バージョン**: v0.19
+- **作成日**: 2025-08-07
 - **言語**: JavaScript (ES6)
 - **ライセンス**: MIT
 
 ## 📋 更新履歴
 
-### v0.2 (2025-08-06)
+### v0.19 (2025-08-07)
+- **UI改善**
+- ファイルタイトルを10文字に短縮表示
+- 保存件数の表示を追加
+- 1行ずつのコンパクトな履歴表示
+- ホバー時に完全な情報をツールチップ表示
+
+### v0.18 (2025-08-07)
+- **重複チェックツール**として完全動作
+- ファイルアップロード・テキスト入力両対応
+- キーワード検索機能実装
+- ドラッグ&ドロップ対応
+- 自動タイトル生成機能
+
+### v0.2 (Core/Custom構造)
 - **Core/Custom分離構造**導入
 - `core/` フォルダ：安全な核心部分
 - `custom/` フォルダ：カスタマイズ可能領域
 - プロジェクト構造ドキュメント追加
-- 他アプリへの転用が容易に
+- 他ツールへの転用が容易に
 
-### v0.1 (2025-08-06)
+### v0.1 (Universal Template)
 - 初回リリース
 - Firebase + Google認証実装
-- 体重記録・履歴表示機能
-- キーボード操作対応
-- 測定タイミングプリセット
-- GitHub Pages デプロイ完成
+- Universal Templateシステム採用
+- GitHub Pages デプロイ対応
 
 ## 🤝 貢献
 
@@ -179,4 +195,4 @@ Issue・Pull Request歓迎です。改善提案やバグ報告をお待ちして
 
 ---
 
-**🚀 GitHub Pages**: https://muumuu8181.github.io/weight-management-app/
+**🚀 GitHub Pages**: https://[your-username].github.io/duplicate-checker-tool/

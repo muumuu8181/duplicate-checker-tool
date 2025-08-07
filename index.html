@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>重複チェックツール v0.18</title>
+    <title>重複チェックツール v0.19</title>
     
     <!-- カスタムスタイル -->
     <link rel="stylesheet" href="custom/styles.css">
@@ -36,7 +36,7 @@
 <body>
     <div class="container">
         <div class="app-header">
-            <h1 class="app-title">🔍 重複チェックツール v0.18</h1>
+            <h1 class="app-title">🔍 重複チェックツール v0.19</h1>
             <p class="app-subtitle">テキスト重複検出システム - Firebase + Google認証</p>
         </div>
         <!-- 認証セクション -->
@@ -460,14 +460,26 @@
                         .map(([key, value]) => ({ id: key, ...value }))
                         .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
                     
-                    historyDiv.innerHTML = entries.map(entry => {
+                    historyDiv.innerHTML = `<div style="font-weight: bold; color: #17a2b8; margin-bottom: 10px;">📊 保存件数: ${entries.length}件</div>` +
+                        entries.map(entry => {
                         const fileSize = Math.round(entry.fileSize / 1024);
                         const uploadDate = new Date(entry.createdAt).toLocaleDateString('ja-JP');
                         const inputTypeIcon = entry.inputType === 'text' ? '📝' : '📁';
-                        let displayText = `${inputTypeIcon} ${entry.fileName} (${fileSize}KB) - ${uploadDate}`;
-                        if (entry.memo) displayText += ` - ${entry.memo}`;
-                        return `<div style="display: flex; justify-content: space-between; align-items: center; padding: 2px 0; border-bottom: 1px solid #eee;">
-                            <span style="cursor: pointer; flex: 1;" onclick="showFileContent('${entry.id}', '${entry.fileName}', \`${entry.content.replace(/`/g, '\\`').replace(/\\/g, '\\\\')}\`)">${displayText}</span>
+                        
+                        // ファイル名を10文字程度に短縮
+                        let shortFileName = entry.fileName;
+                        if (shortFileName.length > 10) {
+                            shortFileName = shortFileName.substring(0, 10) + '...';
+                        }
+                        
+                        // 1行表示用のフォーマット
+                        return `<div style="display: flex; justify-content: space-between; align-items: center; padding: 5px 0; border-bottom: 1px solid #eee;">
+                            <span style="cursor: pointer; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" 
+                                  onclick="showFileContent('${entry.id}', '${entry.fileName}', \`${entry.content.replace(/`/g, '\\`').replace(/\\/g, '\\\\')}\`)"
+                                  title="${entry.fileName} (${fileSize}KB) - ${uploadDate}${entry.memo ? ' - ' + entry.memo : ''}">
+                                ${inputTypeIcon} ${shortFileName} <span style="color: #6c757d; font-size: 12px;">(${fileSize}KB)</span>
+                            </span>
+                            <span style="color: #6c757d; font-size: 12px; margin: 0 10px;">${uploadDate}</span>
                             <button onclick="deleteFileEntry('${entry.id}')" style="background: #dc3545; color: white; border: none; padding: 2px 6px; border-radius: 3px; cursor: pointer; font-size: 10px;">🗑️</button>
                         </div>`;
                     }).join('');

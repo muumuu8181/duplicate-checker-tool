@@ -31,7 +31,7 @@ gh run view [run-id]
 ### 3. GitHub Pagesの状態確認
 ```bash
 # Pages設定を確認
-gh api repos/muumuu8181/weight-management-app/pages
+gh api repos/[your-username]/duplicate-checker-tool/pages
 
 # リポジトリ情報を確認
 gh repo view

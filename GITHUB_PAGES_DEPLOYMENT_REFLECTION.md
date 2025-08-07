@@ -1,10 +1,10 @@
 # GitHub Pages デプロイメント振り返り (Reflection)
 
 ## 📅 日時
-2025-08-06 - 体重管理アプリ v0.1 GitHub Pages公開
+2025-08-07 - 重複チェックツール v0.18 GitHub Pages公開
 
 ## 🎯 目標
-Firebase + Google認証を使用した体重管理アプリをGitHub Pagesで公開
+Firebase + Google認証を使用した重複チェックツールをGitHub Pagesで公開
 
 ## ❌ 失敗したアプローチと学習ポイント
 
@@ -16,11 +16,11 @@ Firebase + Google認証を使用した体重管理アプリをGitHub Pagesで公
 ### 2. API呼び出しの構文エラー
 ```bash
 # ❌ 失敗例1: JSON文字列として誤解釈
-gh api repos/muumuu8181/weight-management-app/pages -X POST --field source='{"branch":"main","path":"/"}'
+gh api repos/[your-username]/duplicate-checker-tool/pages -X POST --field source='{"branch":"main","path":"/"}'
 # エラー: not of type `object`
 
 # ❌ 失敗例2: 無効な入力形式
-gh api repos/muumuu8181/weight-management-app/pages -X POST --field source.branch=main --field source.path=/
+gh api repos/[your-username]/duplicate-checker-tool/pages -X POST --field source.branch=main --field source.path=/
 # エラー: data matches no possible input
 ```
 **学習**: GitHub CLI の --field構文とAPI仕様の正確な理解が必要
@@ -45,7 +45,7 @@ permissions:
 ### 最終的な解決策
 ```bash
 # 1. GitHub Actionsワークフロー経由でPages有効化
-gh api repos/muumuu8181/weight-management-app/pages --method POST --field build_type=workflow
+gh api repos/[your-username]/duplicate-checker-tool/pages --method POST --field build_type=workflow
 
 # 2. ワークフロー手動実行
 gh workflow run pages.yml
