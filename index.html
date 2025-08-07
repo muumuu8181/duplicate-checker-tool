@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>重複チェックツール v0.31</title>
+    <title>重複チェックツール v0.32</title>
     
     <!-- カスタムスタイル -->
     <link rel="stylesheet" href="custom/styles.css">
@@ -106,7 +106,7 @@
     <div class="fixed-header">
         <div class="header-content">
             <div class="app-header" style="text-align: center; margin: 0; padding: 0;">
-                <h1 class="app-title" style="margin: 5px 0 0 0; padding: 0; font-size: 16px; line-height: 1.0; display: inline-block;">🔍 重複チェックツール v0.31</h1>
+                <h1 class="app-title" style="margin: 5px 0 0 0; padding: 0; font-size: 16px; line-height: 1.0; display: inline-block;">🔍 重複チェックツール v0.32</h1>
                 <p class="app-subtitle" style="margin: 0; padding: 0; font-size: 10px; line-height: 1.0; display: inline-block; vertical-align: top; margin-left: 8px;">テキスト重複検出システム - Firebase + Google認証</p>
             </div>
             <!-- ログイン/ログアウトセクション -->
@@ -256,7 +256,7 @@
                             <li>キーワードで検索</li>
                             <li>vol番号が自動的に表示されます</li>
                         </ol>
-                        <p>バージョン: v0.31</p>
+                        <p>バージョン: v0.32</p>
                     </div>
                 </div>
 
@@ -797,11 +797,12 @@
                         let volDisplay = '';
                         if (volNumber) {
                             volDisplay = `<span style="background: #007bff; color: white; padding: 1px 6px; border-radius: 10px; font-size: 10px; margin-left: 5px;">${volNumber}</span>`;
+                            if (debugVol) {
+                                log(`  🎨 バッジ作成: ${volNumber} → ${volDisplay.length}文字`);
+                            }
                         } else {
-                            // vol番号が見つからない場合の代替表示
-                            const hasNumbers = entry.fileName.match(/\d+/) || entry.content.match(/\d+/);
-                            if (hasNumbers && debugVol) {
-                                volDisplay = `<span style="background: #6c757d; color: white; padding: 1px 6px; border-radius: 10px; font-size: 9px; margin-left: 5px;" title="vol番号未検出">?</span>`;
+                            if (debugVol) {
+                                log(`  ❌ volNumber変数が空です: "${volNumber}"`);
                             }
                         }
                         
