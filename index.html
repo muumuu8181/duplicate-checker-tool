@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>重複チェックツール v0.20</title>
+    <title>重複チェックツール v0.22</title>
     
     <!-- カスタムスタイル -->
     <link rel="stylesheet" href="custom/styles.css">
@@ -36,7 +36,7 @@
 <body>
     <div class="container">
         <div class="app-header">
-            <h1 class="app-title">🔍 重複チェックツール v0.20</h1>
+            <h1 class="app-title">🔍 重複チェックツール v0.22</h1>
             <p class="app-subtitle">テキスト重複検出システム - Firebase + Google認証</p>
         </div>
         <!-- 認証セクション -->
@@ -51,8 +51,14 @@
             <button class="logout-button" onclick="handleLogout()">ログアウト</button>
         </div>
 
+        <!-- タブナビゲーション -->
+        <div class="tab-navigation hidden" id="tabNavigation" style="margin: 20px 0;">
+            <button class="tab-button active" onclick="switchTab('duplicate')" style="background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 5px 5px 0 0; cursor: pointer; margin-right: 5px;">🔍 重複チェック</button>
+            <button class="tab-button" onclick="switchTab('other')" style="background: #6c757d; color: white; border: none; padding: 10px 20px; border-radius: 5px 5px 0 0; cursor: pointer;">📋 その他機能</button>
+        </div>
+
         <!-- データ入力セクション -->
-        <div class="weight-input hidden" id="weightInput">
+        <div class="weight-input hidden tab-content" id="weightInput" data-tab="duplicate">
             <div class="input-card">
                 <h3>📄 データを入力</h3>
                 
@@ -110,6 +116,21 @@
                 <div class="data-area" id="fileHistory">
                     ファイルデータを読み込み中...<br>
                 </div>
+            </div>
+        </div>
+
+        <!-- その他機能タブ -->
+        <div class="hidden tab-content" id="otherTab" data-tab="other" style="background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+            <h3>📋 その他の機能</h3>
+            <div style="margin: 20px 0;">
+                <p>ここに新しい機能を追加できます。例：</p>
+                <ul>
+                    <li>📊 統計情報の表示</li>
+                    <li>🔄 データのエクスポート/インポート</li>
+                    <li>⚙️ 詳細設定</li>
+                    <li>📈 分析レポート</li>
+                </ul>
+                <button class="save-button" onclick="log('📋 その他機能タブがクリックされました')" style="margin-top: 10px;">テスト機能</button>
             </div>
         </div>
 
@@ -492,10 +513,38 @@
             });
         }
 
+        // タブ切り替え機能
+        window.switchTab = (tabName) => {
+            // すべてのタブコンテンツを非表示
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.add('hidden');
+            });
+            
+            // すべてのタブボタンのスタイルをリセット
+            document.querySelectorAll('.tab-button').forEach(button => {
+                button.style.background = '#6c757d';
+                button.classList.remove('active');
+            });
+            
+            // 選択されたタブを表示
+            if (tabName === 'duplicate') {
+                document.getElementById('weightInput').classList.remove('hidden');
+                document.querySelector('[onclick="switchTab(\'duplicate\')"]').style.background = '#007bff';
+                document.querySelector('[onclick="switchTab(\'duplicate\')"]').classList.add('active');
+                log('🔍 重複チェックタブに切り替えました');
+            } else if (tabName === 'other') {
+                document.getElementById('otherTab').classList.remove('hidden');
+                document.querySelector('[onclick="switchTab(\'other\')"]').style.background = '#007bff';
+                document.querySelector('[onclick="switchTab(\'other\')"]').classList.add('active');
+                log('📋 その他機能タブに切り替えました');
+            }
+        };
+
         // UI表示制御
         function showUserInterface(user) {
             document.getElementById('authSection').classList.add('hidden');
             document.getElementById('userInfo').classList.remove('hidden');
+            document.getElementById('tabNavigation').classList.remove('hidden');
             document.getElementById('weightInput').classList.remove('hidden');
             document.getElementById('userName').textContent = user.displayName;
             
@@ -506,7 +555,9 @@
         function showLoginInterface() {
             document.getElementById('authSection').classList.remove('hidden');
             document.getElementById('userInfo').classList.add('hidden');
+            document.getElementById('tabNavigation').classList.add('hidden');
             document.getElementById('weightInput').classList.add('hidden');
+            document.getElementById('otherTab').classList.add('hidden');
         }
 
         // ファイル内容表示機能
@@ -565,10 +616,39 @@
                     const keywordLower = keyword.toLowerCase();
                     
                     if (contentLower.includes(keywordLower)) {
-                        // vol. xxxxパターンを抽出
-                        const volPattern = /vol\.?\s*(\d{4})/gi;
-                        const volMatch = file.content.match(volPattern);
-                        const volNumber = volMatch ? volMatch[0] : null;
+                        // vol. xxxxパターンを抽出（改善版）
+                        let volNumber = null;
+                        
+                        // パターン1: ファイル内容から検索
+                        const volPattern = /vol\.?\s*(\d{3,4})/gi;
+                        const volMatches = file.content.match(volPattern);
+                        if (volMatches) {
+                            volNumber = volMatches[0];
+                        }
+                        
+                        // パターン2: ファイル名から検索
+                        if (!volNumber) {
+                            const fileNameMatch = file.fileName.match(/vol\.?\s*(\d{3,4})/gi);
+                            if (fileNameMatch) {
+                                volNumber = fileNameMatch[0];
+                                log(`📘 Vol番号をファイル名から検出: ${volNumber} - ${file.fileName}`);
+                            }
+                        }
+                        
+                        // パターン3: 日本語の「第xxxx号」パターン
+                        if (!volNumber) {
+                            const altPattern = /第(\d{3,4})号/g;
+                            const altMatch = file.content.match(altPattern);
+                            if (altMatch) {
+                                volNumber = `vol.${altMatch[0].match(/\d+/)[0]}`;
+                                log(`📗 日本語パターンを検出: ${altMatch[0]} → ${volNumber}`);
+                            }
+                        }
+                        
+                        // デバッグ: vol番号が見つからなかった場合
+                        if (!volNumber && file.fileName.includes('堀江')) {
+                            log(`⚠️ Vol番号が見つかりません: ${file.fileName}`);
+                        }
                         
                         // キーワードを含む行を抽出（前後2行も含む）
                         const lines = file.content.split('\n');
