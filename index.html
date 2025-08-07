@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>重複チェックツール v0.28</title>
+    <title>重複チェックツール v0.29</title>
     
     <!-- カスタムスタイル -->
     <link rel="stylesheet" href="custom/styles.css">
@@ -17,7 +17,9 @@
     <!-- カスタム設定 -->
     <script type="module" src="custom/app-config.js"></script>
     <style>
-        body { font-family: Arial, sans-serif; padding: 10px; background: #f5f5f5; }
+        * { box-sizing: border-box; }
+        h1, p { margin: 0 !important; padding: 0 !important; }
+        body { font-family: Arial, sans-serif; padding: 10px; background: #f5f5f5; margin: 0; }
         .container { max-width: 800px; margin: 0 auto; background: white; padding: 15px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
         .auth-section { background: #e7f3ff; color: #0c5460; padding: 10px; border-radius: 5px; margin-bottom: 10px; text-align: center; }
         .weight-input { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 10px; margin: 10px 0; }
@@ -41,7 +43,7 @@
             background: white;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
             z-index: 1000;
-            padding: 2px 10px;
+            padding: 1px 10px;
         }
         .header-content {
             max-width: 800px;
@@ -50,7 +52,7 @@
         .header-tabs {
             display: flex;
             gap: 5px;
-            margin-top: 2px;
+            margin-top: 1px;
             justify-content: center;
             flex-wrap: wrap;
         }
@@ -76,7 +78,7 @@
             box-shadow: 0 2px 5px rgba(0,123,255,0.3);
         }
         .main-content {
-            margin-top: 105px; /* ヘッダーの高さ分の余白 */
+            margin-top: 95px; /* ヘッダーの高さ分の余白 */
             padding: 10px;
         }
         @media (max-width: 600px) {
@@ -88,7 +90,7 @@
                 font-size: 12px;
             }
             .main-content {
-                margin-top: 140px;
+                margin-top: 130px;
             }
             .save-button, .universal-copy-btn {
                 font-size: 14px;
@@ -103,12 +105,12 @@
     <!-- 固定ヘッダー -->
     <div class="fixed-header">
         <div class="header-content">
-            <div class="app-header" style="text-align: center;">
-                <h1 class="app-title" style="margin: 0; font-size: 16px; line-height: 1.2;">🔍 重複チェックツール v0.28</h1>
-                <p class="app-subtitle" style="margin: 1px 0 0 0; font-size: 10px; line-height: 1.1;">テキスト重複検出システム - Firebase + Google認証</p>
+            <div class="app-header" style="text-align: center; margin: 0; padding: 0;">
+                <h1 class="app-title" style="margin: 0; padding: 0; font-size: 16px; line-height: 1.0; display: inline-block;">🔍 重複チェックツール v0.29</h1>
+                <p class="app-subtitle" style="margin: 0; padding: 0; font-size: 10px; line-height: 1.0; display: inline-block; vertical-align: top; margin-left: 8px;">テキスト重複検出システム - Firebase + Google認証</p>
             </div>
             <!-- ログイン/ログアウトセクション -->
-            <div style="display: flex; justify-content: center; align-items: center; margin: 2px 0 3px 0;">
+            <div style="display: flex; justify-content: center; align-items: center; margin: 0; padding: 0;">
                 <div class="auth-section" id="authSection" style="background: transparent; padding: 0; margin: 0; color: #333;">
                     <button class="auth-button" onclick="handleGoogleLogin()" style="padding: 3px 12px; font-size: 11px;">Googleでログイン</button>
                 </div>
@@ -256,7 +258,7 @@
                             <li>キーワードで検索</li>
                             <li>vol番号が自動的に表示されます</li>
                         </ol>
-                        <p>バージョン: v0.28</p>
+                        <p>バージョン: v0.29</p>
                     </div>
                 </div>
 
