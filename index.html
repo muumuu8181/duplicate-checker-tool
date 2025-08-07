@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>重複チェックツール v0.24</title>
+    <title>重複チェックツール v0.25</title>
     
     <!-- カスタムスタイル -->
     <link rel="stylesheet" href="custom/styles.css">
@@ -73,7 +73,7 @@
             box-shadow: 0 2px 5px rgba(0,123,255,0.3);
         }
         .main-content {
-            margin-top: 140px; /* ヘッダーの高さ分の余白 */
+            margin-top: 120px; /* ヘッダーの高さ分の余白 */
             padding: 15px;
         }
         @media (max-width: 600px) {
@@ -85,7 +85,13 @@
                 font-size: 12px;
             }
             .main-content {
-                margin-top: 160px;
+                margin-top: 140px;
+            }
+            .save-button, .universal-copy-btn {
+                font-size: 14px;
+            }
+            .input-card h4 {
+                font-size: 14px !important;
             }
         }
     </style>
@@ -95,8 +101,8 @@
     <div class="fixed-header">
         <div class="header-content">
             <div class="app-header" style="text-align: center;">
-                <h1 class="app-title" style="margin: 0;">🔍 重複チェックツール v0.24</h1>
-                <p class="app-subtitle" style="margin: 5px 0;">テキスト重複検出システム - Firebase + Google認証</p>
+                <h1 class="app-title" style="margin: 0; font-size: 20px;">🔍 重複チェックツール v0.25</h1>
+                <p class="app-subtitle" style="margin: 3px 0; font-size: 12px;">テキスト重複検出システム - Firebase + Google認証</p>
             </div>
             <!-- ヘッダータブ -->
             <div class="header-tabs">
@@ -169,11 +175,11 @@
             </div>
             
             <div class="input-card">
-                <h3>🔍 キーワード検索</h3>
-                <div style="display: flex; gap: 10px; margin: 10px 0;">
-                    <input type="text" class="input-field" id="searchKeyword" placeholder="検索キーワードを入力..." style="flex: 1;" onkeydown="if(event.key === 'Enter') searchFiles()">
-                    <button class="save-button" onclick="searchFiles()" style="background: #17a2b8; padding: 10px 16px;">🔍 検索</button>
-                    <button class="universal-copy-btn" onclick="clearSearch()" style="background: #6c757d; color: white; border: none; padding: 10px 16px; border-radius: 5px; cursor: pointer;">🗑️ クリア</button>
+                <div style="display: flex; align-items: center; gap: 10px; margin: 10px 0;">
+                    <h4 style="margin: 0; font-size: 14px; white-space: nowrap;">🔍 キーワード検索</h4>
+                    <input type="text" class="input-field" id="searchKeyword" placeholder="検索キーワードを入力..." style="flex: 1; margin: 0;" onkeydown="if(event.key === 'Enter') searchFiles()">
+                    <button class="save-button" onclick="searchFiles()" style="background: #17a2b8; padding: 10px 16px; white-space: nowrap;">🔍 検索</button>
+                    <button class="universal-copy-btn" onclick="clearSearch()" style="background: #6c757d; color: white; border: none; padding: 10px 16px; border-radius: 5px; cursor: pointer; white-space: nowrap;">🗑️ クリア</button>
                 </div>
                 
                 <!-- 検索結果表示エリア -->
@@ -232,7 +238,7 @@
                             <li>キーワードで検索</li>
                             <li>vol番号が自動的に表示されます</li>
                         </ol>
-                        <p>バージョン: v0.24</p>
+                        <p>バージョン: v0.25</p>
                     </div>
                 </div>
 
