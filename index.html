@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>重複チェックツール v0.29</title>
+    <title>重複チェックツール v0.30</title>
     
     <!-- カスタムスタイル -->
     <link rel="stylesheet" href="custom/styles.css">
@@ -78,7 +78,7 @@
             box-shadow: 0 2px 5px rgba(0,123,255,0.3);
         }
         .main-content {
-            margin-top: 95px; /* ヘッダーの高さ分の余白 */
+            margin-top: 97px; /* ヘッダーの高さ分の余白 */
             padding: 10px;
         }
         @media (max-width: 600px) {
@@ -90,7 +90,7 @@
                 font-size: 12px;
             }
             .main-content {
-                margin-top: 130px;
+                margin-top: 132px;
             }
             .save-button, .universal-copy-btn {
                 font-size: 14px;
@@ -106,7 +106,7 @@
     <div class="fixed-header">
         <div class="header-content">
             <div class="app-header" style="text-align: center; margin: 0; padding: 0;">
-                <h1 class="app-title" style="margin: 0; padding: 0; font-size: 16px; line-height: 1.0; display: inline-block;">🔍 重複チェックツール v0.29</h1>
+                <h1 class="app-title" style="margin: 2px 0 0 0; padding: 0; font-size: 16px; line-height: 1.0; display: inline-block;">🔍 重複チェックツール v0.30</h1>
                 <p class="app-subtitle" style="margin: 0; padding: 0; font-size: 10px; line-height: 1.0; display: inline-block; vertical-align: top; margin-left: 8px;">テキスト重複検出システム - Firebase + Google認証</p>
             </div>
             <!-- ログイン/ログアウトセクション -->
@@ -155,7 +155,7 @@
         <!-- データ入力セクション -->
         <div class="weight-input hidden tab-content" id="weightInput" data-tab="duplicate">
             <div class="input-card">
-                <h3>📄 データを入力</h3>
+                <h3>📄 データの入力方法を選択</h3>
                 
                 <!-- 入力方法選択 -->
                 <div style="margin: 10px 0;">
@@ -186,7 +186,7 @@
                     </div>
                 </div>
 
-                <textarea class="input-field" id="memoInput" placeholder="メモ (オプション)" rows="2"></textarea>
+                <textarea class="input-field" id="memoInput" placeholder="メモ (オプション)" rows="2" style="color: #888; opacity: 0.8;"></textarea>
                 <button class="save-button" onclick="saveData()">💾 保存</button>
             </div>
             
@@ -211,7 +211,6 @@
             </div>
             
             <div class="input-card">
-                <h3>📂 保存済みファイル</h3>
                 <div class="data-area" id="fileHistory">
                     ファイルデータを読み込み中...<br>
                 </div>
@@ -258,7 +257,7 @@
                             <li>キーワードで検索</li>
                             <li>vol番号が自動的に表示されます</li>
                         </ol>
-                        <p>バージョン: v0.29</p>
+                        <p>バージョン: v0.30</p>
                     </div>
                 </div>
 
@@ -615,18 +614,46 @@
                         const uploadDate = new Date(entry.createdAt).toLocaleDateString('ja-JP');
                         const inputTypeIcon = entry.inputType === 'text' ? '📝' : '📁';
                         
+                        // vol番号を抽出
+                        let volNumber = null;
+                        // パターン1: ファイル内容から検索
+                        const volPattern = /vol\.?\s*(\d{3,4})/gi;
+                        const volMatches = entry.content.match(volPattern);
+                        if (volMatches) {
+                            volNumber = volMatches[0];
+                        }
+                        // パターン2: ファイル名から検索
+                        if (!volNumber) {
+                            const fileNameMatch = entry.fileName.match(/vol\.?\s*(\d{3,4})/gi);
+                            if (fileNameMatch) {
+                                volNumber = fileNameMatch[0];
+                            }
+                        }
+                        // パターン3: 日本語の「第xxxx号」パターン
+                        if (!volNumber) {
+                            const altPattern = /第(\d{3,4})号/g;
+                            const altMatch = entry.content.match(altPattern);
+                            if (altMatch) {
+                                volNumber = `vol.${altMatch[0].match(/\d+/)[0]}`;
+                            }
+                        }
+                        
                         // ファイル名を10文字程度に短縮
                         let shortFileName = entry.fileName;
                         if (shortFileName.length > 10) {
                             shortFileName = shortFileName.substring(0, 10) + '...';
                         }
                         
+                        // vol番号の表示部分
+                        const volDisplay = volNumber ? 
+                            `<span style="background: #007bff; color: white; padding: 1px 6px; border-radius: 10px; font-size: 10px; margin-left: 5px;">${volNumber}</span>` : '';
+                        
                         // 1行表示用のフォーマット
                         return `<div style="display: flex; justify-content: space-between; align-items: center; padding: 5px 0; border-bottom: 1px solid #eee;">
                             <span style="cursor: pointer; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" 
                                   onclick="showFileContent('${entry.id}', '${entry.fileName}', \`${entry.content.replace(/`/g, '\\`').replace(/\\/g, '\\\\')}\`)"
                                   title="${entry.fileName} (${fileSize}KB) - ${uploadDate}${entry.memo ? ' - ' + entry.memo : ''}">
-                                ${inputTypeIcon} ${shortFileName} <span style="color: #6c757d; font-size: 12px;">(${fileSize}KB)</span>
+                                ${inputTypeIcon} ${shortFileName} <span style="color: #6c757d; font-size: 12px;">(${fileSize}KB)</span>${volDisplay}
                             </span>
                             <span style="color: #6c757d; font-size: 12px; margin: 0 10px;">${uploadDate}</span>
                             <button onclick="deleteFileEntry('${entry.id}')" style="background: #dc3545; color: white; border: none; padding: 2px 6px; border-radius: 3px; cursor: pointer; font-size: 10px;">🗑️</button>
