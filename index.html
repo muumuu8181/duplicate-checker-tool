@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>重複チェックツール v0.26</title>
+    <title>重複チェックツール v0.27</title>
     
     <!-- カスタムスタイル -->
     <link rel="stylesheet" href="custom/styles.css">
@@ -41,7 +41,7 @@
             background: white;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
             z-index: 1000;
-            padding: 5px 10px;
+            padding: 3px 10px;
         }
         .header-content {
             max-width: 800px;
@@ -76,7 +76,7 @@
             box-shadow: 0 2px 5px rgba(0,123,255,0.3);
         }
         .main-content {
-            margin-top: 90px; /* ヘッダーの高さ分の余白 */
+            margin-top: 120px; /* ヘッダーの高さ分の余白 */
             padding: 10px;
         }
         @media (max-width: 600px) {
@@ -88,7 +88,7 @@
                 font-size: 12px;
             }
             .main-content {
-                margin-top: 140px;
+                margin-top: 160px;
             }
             .save-button, .universal-copy-btn {
                 font-size: 14px;
@@ -104,8 +104,18 @@
     <div class="fixed-header">
         <div class="header-content">
             <div class="app-header" style="text-align: center;">
-                <h1 class="app-title" style="margin: 0; font-size: 20px;">🔍 重複チェックツール v0.26</h1>
-                <p class="app-subtitle" style="margin: 3px 0; font-size: 12px;">テキスト重複検出システム - Firebase + Google認証</p>
+                <h1 class="app-title" style="margin: 0; font-size: 18px;">🔍 重複チェックツール v0.27</h1>
+                <p class="app-subtitle" style="margin: 2px 0; font-size: 11px;">テキスト重複検出システム - Firebase + Google認証</p>
+            </div>
+            <!-- ログイン/ログアウトセクション -->
+            <div style="display: flex; justify-content: center; align-items: center; margin: 5px 0;">
+                <div class="auth-section" id="authSection" style="background: transparent; padding: 0; margin: 0; color: #333;">
+                    <button class="auth-button" onclick="handleGoogleLogin()" style="padding: 5px 15px; font-size: 12px;">Googleでログイン</button>
+                </div>
+                <div class="user-info hidden" id="userInfo" style="background: transparent; padding: 0; margin: 0; display: flex; align-items: center; gap: 10px;">
+                    <span style="font-size: 12px; color: #333;">👤 ログイン中: <span id="userName"></span></span>
+                    <button class="logout-button" onclick="handleLogout()" style="padding: 4px 12px; font-size: 11px;">ログアウト</button>
+                </div>
             </div>
             <!-- ヘッダータブ -->
             <div class="header-tabs">
@@ -139,17 +149,6 @@
 
     <!-- メインコンテンツ -->
     <div class="container main-content">
-        <!-- 認証セクション -->
-        <div class="auth-section" id="authSection">
-            <h3>🔐 ログイン</h3>
-            <p>Googleアカウントでログインして体重データを保存・同期できます</p>
-            <button class="auth-button" onclick="handleGoogleLogin()">Googleでログイン</button>
-        </div>
-        <!-- ユーザー情報表示 -->
-        <div class="user-info hidden" id="userInfo">
-            <span>👤 ログイン中: <span id="userName"></span></span>
-            <button class="logout-button" onclick="handleLogout()">ログアウト</button>
-        </div>
 
         <!-- データ入力セクション -->
         <div class="weight-input hidden tab-content" id="weightInput" data-tab="duplicate">
@@ -192,10 +191,12 @@
             <div class="input-card">
                 <div>
                     <h4 style="margin: 0 0 10px 0; font-size: 14px;">🔍 キーワード検索</h4>
-                    <div style="display: flex; align-items: center; gap: 5px; flex-wrap: wrap;">
-                        <input type="text" class="input-field" id="searchKeyword" placeholder="検索キーワードを入力..." style="flex: 1 1 200px; min-width: 200px; margin: 0;" onkeydown="if(event.key === 'Enter') searchFiles()">
-                        <button class="save-button" onclick="searchFiles()" style="background: #17a2b8; padding: 10px 16px; white-space: nowrap; margin: 0;">🔍 検索</button>
-                        <button class="universal-copy-btn" onclick="clearSearch()" style="background: #6c757d; color: white; border: none; padding: 10px 16px; border-radius: 5px; cursor: pointer; white-space: nowrap; margin: 0;">🗑️ クリア</button>
+                    <div>
+                        <input type="text" class="input-field" id="searchKeyword" placeholder="検索キーワードを入力..." style="width: 100%; margin: 0 0 5px 0;" onkeydown="if(event.key === 'Enter') searchFiles()">
+                        <div style="display: flex; gap: 5px;">
+                            <button class="save-button" onclick="searchFiles()" style="background: #17a2b8; padding: 10px 16px; white-space: nowrap; margin: 0;">🔍 検索</button>
+                            <button class="universal-copy-btn" onclick="clearSearch()" style="background: #6c757d; color: white; border: none; padding: 10px 16px; border-radius: 5px; cursor: pointer; white-space: nowrap; margin: 0;">🗑️ クリア</button>
+                        </div>
                     </div>
                 </div>
                 
@@ -255,7 +256,7 @@
                             <li>キーワードで検索</li>
                             <li>vol番号が自動的に表示されます</li>
                         </ol>
-                        <p>バージョン: v0.26</p>
+                        <p>バージョン: v0.27</p>
                     </div>
                 </div>
 

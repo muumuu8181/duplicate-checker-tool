@@ -5,7 +5,7 @@
 export const APP_CONFIG = {
     // アプリの基本情報（自由に変更可能）
     name: "重複チェックツール",
-    version: "0.26",
+    version: "0.27",
     description: "Firebase + Google認証によるテキスト重複検出システム",
     
     // デフォルト値設定（カスタマイズ可能）
