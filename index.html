@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>重複チェックツール v0.30</title>
+    <title>重複チェックツール v0.31</title>
     
     <!-- カスタムスタイル -->
     <link rel="stylesheet" href="custom/styles.css">
@@ -78,7 +78,7 @@
             box-shadow: 0 2px 5px rgba(0,123,255,0.3);
         }
         .main-content {
-            margin-top: 97px; /* ヘッダーの高さ分の余白 */
+            margin-top: 100px; /* ヘッダーの高さ分の余白 */
             padding: 10px;
         }
         @media (max-width: 600px) {
@@ -90,7 +90,7 @@
                 font-size: 12px;
             }
             .main-content {
-                margin-top: 132px;
+                margin-top: 135px;
             }
             .save-button, .universal-copy-btn {
                 font-size: 14px;
@@ -106,7 +106,7 @@
     <div class="fixed-header">
         <div class="header-content">
             <div class="app-header" style="text-align: center; margin: 0; padding: 0;">
-                <h1 class="app-title" style="margin: 2px 0 0 0; padding: 0; font-size: 16px; line-height: 1.0; display: inline-block;">🔍 重複チェックツール v0.30</h1>
+                <h1 class="app-title" style="margin: 5px 0 0 0; padding: 0; font-size: 16px; line-height: 1.0; display: inline-block;">🔍 重複チェックツール v0.31</h1>
                 <p class="app-subtitle" style="margin: 0; padding: 0; font-size: 10px; line-height: 1.0; display: inline-block; vertical-align: top; margin-left: 8px;">テキスト重複検出システム - Firebase + Google認証</p>
             </div>
             <!-- ログイン/ログアウトセクション -->
@@ -155,7 +155,6 @@
         <!-- データ入力セクション -->
         <div class="weight-input hidden tab-content" id="weightInput" data-tab="duplicate">
             <div class="input-card">
-                <h3>📄 データの入力方法を選択</h3>
                 
                 <!-- 入力方法選択 -->
                 <div style="margin: 10px 0;">
@@ -257,7 +256,7 @@
                             <li>キーワードで検索</li>
                             <li>vol番号が自動的に表示されます</li>
                         </ol>
-                        <p>バージョン: v0.30</p>
+                        <p>バージョン: v0.31</p>
                     </div>
                 </div>
 
@@ -575,6 +574,95 @@
             });
         }
 
+        // vol番号抽出の統一関数
+        function extractVolNumber(fileName, content, enableDebug = false) {
+            const debugVol = enableDebug || fileName.includes('堀江') || fileName.includes('vol');
+            
+            if (debugVol) {
+                log(`🔍 Vol番号抽出開始: ${fileName}`);
+            }
+            
+            // 複数のパターンを定義（優先度順）
+            const volPatterns = [
+                // パターン1: vol.123, vol 123, vol.1234, vol123
+                { regex: /vol\.?\s*(\d{1,5})/gi, format: (match, num) => `vol.${num}`, priority: 1, desc: 'vol.数字パターン' },
+                // パターン2: Vol.123, VOL.123
+                { regex: /VOL\.?\s*(\d{1,5})/gi, format: (match, num) => `vol.${num}`, priority: 1, desc: 'VOL.数字パターン' },
+                // パターン3: 第123号, 第1234号
+                { regex: /第\s*(\d{1,5})\s*号/g, format: (match, num) => `vol.${num}`, priority: 2, desc: '第xx号パターン' },
+                // パターン4: No.123, No 123
+                { regex: /No\.?\s*(\d{1,5})/gi, format: (match, num) => `vol.${num}`, priority: 3, desc: 'No.数字パターン' },
+                // パターン5: #123
+                { regex: /#(\d{1,5})/g, format: (match, num) => `vol.${num}`, priority: 4, desc: '#数字パターン' },
+                // パターン6: v123, v.123
+                { regex: /v\.?\s*(\d{1,5})/gi, format: (match, num) => `vol.${num}`, priority: 5, desc: 'v数字パターン' }
+            ];
+            
+            const searchTargets = [
+                { source: fileName, desc: 'ファイル名' },
+                { source: content, desc: 'ファイル内容' }
+            ];
+            
+            let foundMatches = [];
+            
+            // 各検索対象で全パターンをチェック
+            searchTargets.forEach(target => {
+                volPatterns.forEach(pattern => {
+                    const matches = target.source.match(pattern.regex);
+                    if (matches) {
+                        matches.forEach(match => {
+                            const numbers = match.match(/\d+/);
+                            if (numbers && numbers[0]) {
+                                const num = numbers[0];
+                                const formatted = pattern.format(match, num);
+                                foundMatches.push({
+                                    original: match,
+                                    formatted: formatted,
+                                    number: parseInt(num),
+                                    priority: pattern.priority,
+                                    pattern: pattern.desc,
+                                    source: target.desc
+                                });
+                                
+                                if (debugVol) {
+                                    log(`  ✅ マッチ: ${match} → ${formatted} (${pattern.desc}, ${target.desc})`);
+                                }
+                            }
+                        });
+                    }
+                });
+            });
+            
+            // マッチが見つかった場合、優先度と数字の大きさで選択
+            if (foundMatches.length > 0) {
+                foundMatches.sort((a, b) => {
+                    // 優先度が低い方を優先、同じ優先度なら数字が大きい方
+                    if (a.priority !== b.priority) {
+                        return a.priority - b.priority;
+                    }
+                    return b.number - a.number;
+                });
+                
+                const volNumber = foundMatches[0].formatted;
+                
+                if (debugVol) {
+                    log(`  🎯 選択: ${volNumber} (${foundMatches[0].pattern}, ${foundMatches[0].source})`);
+                    if (foundMatches.length > 1) {
+                        log(`  📋 他の候補: ${foundMatches.slice(1).map(m => m.formatted).join(', ')}`);
+                    }
+                }
+                
+                return volNumber;
+            } else {
+                if (debugVol) {
+                    log(`  ❌ Vol番号が見つかりませんでした`);
+                    log(`  📝 ファイル名: ${fileName}`);
+                    log(`  📝 内容プレビュー: ${content.substring(0, 100)}...`);
+                }
+                return null;
+            }
+        }
+
         // ファイルデータ削除
         window.deleteFileEntry = async (entryId) => {
             if (!currentUser) {
@@ -614,27 +702,88 @@
                         const uploadDate = new Date(entry.createdAt).toLocaleDateString('ja-JP');
                         const inputTypeIcon = entry.inputType === 'text' ? '📝' : '📁';
                         
-                        // vol番号を抽出
+                        // vol番号を抽出（改善版）
                         let volNumber = null;
-                        // パターン1: ファイル内容から検索
-                        const volPattern = /vol\.?\s*(\d{3,4})/gi;
-                        const volMatches = entry.content.match(volPattern);
-                        if (volMatches) {
-                            volNumber = volMatches[0];
+                        const debugVol = entry.fileName.includes('堀江') || entry.fileName.includes('vol'); // デバッグ対象
+                        
+                        if (debugVol) {
+                            log(`🔍 Vol番号抽出開始: ${entry.fileName}`);
                         }
-                        // パターン2: ファイル名から検索
-                        if (!volNumber) {
-                            const fileNameMatch = entry.fileName.match(/vol\.?\s*(\d{3,4})/gi);
-                            if (fileNameMatch) {
-                                volNumber = fileNameMatch[0];
+                        
+                        // 複数のパターンを定義（優先度順）
+                        const volPatterns = [
+                            // パターン1: vol.123, vol 123, vol.1234, vol123
+                            { regex: /vol\.?\s*(\d{1,5})/gi, format: (match, num) => `vol.${num}`, priority: 1, desc: 'vol.数字パターン' },
+                            // パターン2: Vol.123, VOL.123
+                            { regex: /VOL\.?\s*(\d{1,5})/gi, format: (match, num) => `vol.${num}`, priority: 1, desc: 'VOL.数字パターン' },
+                            // パターン3: 第123号, 第1234号
+                            { regex: /第\s*(\d{1,5})\s*号/g, format: (match, num) => `vol.${num}`, priority: 2, desc: '第xx号パターン' },
+                            // パターン4: No.123, No 123
+                            { regex: /No\.?\s*(\d{1,5})/gi, format: (match, num) => `vol.${num}`, priority: 3, desc: 'No.数字パターン' },
+                            // パターン5: #123
+                            { regex: /#(\d{1,5})/g, format: (match, num) => `vol.${num}`, priority: 4, desc: '#数字パターン' },
+                            // パターン6: v123, v.123
+                            { regex: /v\.?\s*(\d{1,5})/gi, format: (match, num) => `vol.${num}`, priority: 5, desc: 'v数字パターン' }
+                        ];
+                        
+                        const searchTargets = [
+                            { source: entry.fileName, desc: 'ファイル名' },
+                            { source: entry.content, desc: 'ファイル内容' }
+                        ];
+                        
+                        let foundMatches = [];
+                        
+                        // 各検索対象で全パターンをチェック
+                        searchTargets.forEach(target => {
+                            volPatterns.forEach(pattern => {
+                                const matches = target.source.match(pattern.regex);
+                                if (matches) {
+                                    matches.forEach(match => {
+                                        const numbers = match.match(/\d+/);
+                                        if (numbers && numbers[0]) {
+                                            const num = numbers[0];
+                                            const formatted = pattern.format(match, num);
+                                            foundMatches.push({
+                                                original: match,
+                                                formatted: formatted,
+                                                number: parseInt(num),
+                                                priority: pattern.priority,
+                                                pattern: pattern.desc,
+                                                source: target.desc
+                                            });
+                                            
+                                            if (debugVol) {
+                                                log(`  ✅ マッチ: ${match} → ${formatted} (${pattern.desc}, ${target.desc})`);
+                                            }
+                                        }
+                                    });
+                                }
+                            });
+                        });
+                        
+                        // マッチが見つかった場合、優先度と数字の大きさで選択
+                        if (foundMatches.length > 0) {
+                            foundMatches.sort((a, b) => {
+                                // 優先度が低い方を優先、同じ優先度なら数字が大きい方
+                                if (a.priority !== b.priority) {
+                                    return a.priority - b.priority;
+                                }
+                                return b.number - a.number;
+                            });
+                            
+                            volNumber = foundMatches[0].formatted;
+                            
+                            if (debugVol) {
+                                log(`  🎯 選択: ${volNumber} (${foundMatches[0].pattern}, ${foundMatches[0].source})`);
+                                if (foundMatches.length > 1) {
+                                    log(`  📋 他の候補: ${foundMatches.slice(1).map(m => m.formatted).join(', ')}`);
+                                }
                             }
-                        }
-                        // パターン3: 日本語の「第xxxx号」パターン
-                        if (!volNumber) {
-                            const altPattern = /第(\d{3,4})号/g;
-                            const altMatch = entry.content.match(altPattern);
-                            if (altMatch) {
-                                volNumber = `vol.${altMatch[0].match(/\d+/)[0]}`;
+                        } else {
+                            if (debugVol) {
+                                log(`  ❌ Vol番号が見つかりませんでした`);
+                                log(`  📝 ファイル名: ${entry.fileName}`);
+                                log(`  📝 内容プレビュー: ${entry.content.substring(0, 100)}...`);
                             }
                         }
                         
@@ -645,8 +794,16 @@
                         }
                         
                         // vol番号の表示部分
-                        const volDisplay = volNumber ? 
-                            `<span style="background: #007bff; color: white; padding: 1px 6px; border-radius: 10px; font-size: 10px; margin-left: 5px;">${volNumber}</span>` : '';
+                        let volDisplay = '';
+                        if (volNumber) {
+                            volDisplay = `<span style="background: #007bff; color: white; padding: 1px 6px; border-radius: 10px; font-size: 10px; margin-left: 5px;">${volNumber}</span>`;
+                        } else {
+                            // vol番号が見つからない場合の代替表示
+                            const hasNumbers = entry.fileName.match(/\d+/) || entry.content.match(/\d+/);
+                            if (hasNumbers && debugVol) {
+                                volDisplay = `<span style="background: #6c757d; color: white; padding: 1px 6px; border-radius: 10px; font-size: 9px; margin-left: 5px;" title="vol番号未検出">?</span>`;
+                            }
+                        }
                         
                         // 1行表示用のフォーマット
                         return `<div style="display: flex; justify-content: space-between; align-items: center; padding: 5px 0; border-bottom: 1px solid #eee;">
@@ -777,38 +934,89 @@
                     const keywordLower = keyword.toLowerCase();
                     
                     if (contentLower.includes(keywordLower)) {
-                        // vol. xxxxパターンを抽出（改善版）
+                        // vol番号を抽出（改善版 - 検索機能用）
                         let volNumber = null;
+                        const debugVol = file.fileName.includes('堀江') || file.fileName.includes('vol'); // デバッグ対象
                         
-                        // パターン1: ファイル内容から検索
-                        const volPattern = /vol\.?\s*(\d{3,4})/gi;
-                        const volMatches = file.content.match(volPattern);
-                        if (volMatches) {
-                            volNumber = volMatches[0];
+                        if (debugVol) {
+                            log(`🔍 検索Vol番号抽出開始: ${file.fileName}`);
                         }
                         
-                        // パターン2: ファイル名から検索
-                        if (!volNumber) {
-                            const fileNameMatch = file.fileName.match(/vol\.?\s*(\d{3,4})/gi);
-                            if (fileNameMatch) {
-                                volNumber = fileNameMatch[0];
-                                log(`📘 Vol番号をファイル名から検出: ${volNumber} - ${file.fileName}`);
+                        // 複数のパターンを定義（優先度順）
+                        const volPatterns = [
+                            // パターン1: vol.123, vol 123, vol.1234, vol123
+                            { regex: /vol\.?\s*(\d{1,5})/gi, format: (match, num) => `vol.${num}`, priority: 1, desc: 'vol.数字パターン' },
+                            // パターン2: Vol.123, VOL.123
+                            { regex: /VOL\.?\s*(\d{1,5})/gi, format: (match, num) => `vol.${num}`, priority: 1, desc: 'VOL.数字パターン' },
+                            // パターン3: 第123号, 第1234号
+                            { regex: /第\s*(\d{1,5})\s*号/g, format: (match, num) => `vol.${num}`, priority: 2, desc: '第xx号パターン' },
+                            // パターン4: No.123, No 123
+                            { regex: /No\.?\s*(\d{1,5})/gi, format: (match, num) => `vol.${num}`, priority: 3, desc: 'No.数字パターン' },
+                            // パターン5: #123
+                            { regex: /#(\d{1,5})/g, format: (match, num) => `vol.${num}`, priority: 4, desc: '#数字パターン' },
+                            // パターン6: v123, v.123
+                            { regex: /v\.?\s*(\d{1,5})/gi, format: (match, num) => `vol.${num}`, priority: 5, desc: 'v数字パターン' }
+                        ];
+                        
+                        const searchTargets = [
+                            { source: file.fileName, desc: 'ファイル名' },
+                            { source: file.content, desc: 'ファイル内容' }
+                        ];
+                        
+                        let foundMatches = [];
+                        
+                        // 各検索対象で全パターンをチェック
+                        searchTargets.forEach(target => {
+                            volPatterns.forEach(pattern => {
+                                const matches = target.source.match(pattern.regex);
+                                if (matches) {
+                                    matches.forEach(match => {
+                                        const numbers = match.match(/\d+/);
+                                        if (numbers && numbers[0]) {
+                                            const num = numbers[0];
+                                            const formatted = pattern.format(match, num);
+                                            foundMatches.push({
+                                                original: match,
+                                                formatted: formatted,
+                                                number: parseInt(num),
+                                                priority: pattern.priority,
+                                                pattern: pattern.desc,
+                                                source: target.desc
+                                            });
+                                            
+                                            if (debugVol) {
+                                                log(`  ✅ 検索マッチ: ${match} → ${formatted} (${pattern.desc}, ${target.desc})`);
+                                            }
+                                        }
+                                    });
+                                }
+                            });
+                        });
+                        
+                        // マッチが見つかった場合、優先度と数字の大きさで選択
+                        if (foundMatches.length > 0) {
+                            foundMatches.sort((a, b) => {
+                                // 優先度が低い方を優先、同じ優先度なら数字が大きい方
+                                if (a.priority !== b.priority) {
+                                    return a.priority - b.priority;
+                                }
+                                return b.number - a.number;
+                            });
+                            
+                            volNumber = foundMatches[0].formatted;
+                            
+                            if (debugVol) {
+                                log(`  🎯 検索選択: ${volNumber} (${foundMatches[0].pattern}, ${foundMatches[0].source})`);
+                                if (foundMatches.length > 1) {
+                                    log(`  📋 検索他の候補: ${foundMatches.slice(1).map(m => m.formatted).join(', ')}`);
+                                }
                             }
-                        }
-                        
-                        // パターン3: 日本語の「第xxxx号」パターン
-                        if (!volNumber) {
-                            const altPattern = /第(\d{3,4})号/g;
-                            const altMatch = file.content.match(altPattern);
-                            if (altMatch) {
-                                volNumber = `vol.${altMatch[0].match(/\d+/)[0]}`;
-                                log(`📗 日本語パターンを検出: ${altMatch[0]} → ${volNumber}`);
+                        } else {
+                            if (debugVol) {
+                                log(`  ❌ 検索Vol番号が見つかりませんでした`);
+                                log(`  📝 ファイル名: ${file.fileName}`);
+                                log(`  📝 内容プレビュー: ${file.content.substring(0, 100)}...`);
                             }
-                        }
-                        
-                        // デバッグ: vol番号が見つからなかった場合
-                        if (!volNumber && file.fileName.includes('堀江')) {
-                            log(`⚠️ Vol番号が見つかりません: ${file.fileName}`);
                         }
                         
                         // キーワードを含む行を抽出（前後2行も含む）
@@ -874,9 +1082,17 @@
                     const moreMatches = file.matches.length > 3 ? `<small style="color: #666;">...他 ${file.matches.length - 3} 件のマッチ</small>` : '';
                     
                     // vol番号の表示
-                    const volDisplay = file.volNumber ? 
-                        `<span style="background: #e3f2fd; color: #1976d2; padding: 2px 8px; border-radius: 12px; font-weight: bold; margin-left: 10px;">${file.volNumber}</span>` : 
-                        '';
+                    let volDisplay = '';
+                    if (file.volNumber) {
+                        volDisplay = `<span style="background: #e3f2fd; color: #1976d2; padding: 2px 8px; border-radius: 12px; font-weight: bold; margin-left: 10px;">${file.volNumber}</span>`;
+                    } else {
+                        // vol番号が見つからない場合の代替表示
+                        const hasNumbers = file.fileName.match(/\d+/) || file.content.match(/\d+/);
+                        const debugVol = file.fileName.includes('堀江') || file.fileName.includes('vol');
+                        if (hasNumbers && debugVol) {
+                            volDisplay = `<span style="background: #f5f5f5; color: #6c757d; padding: 2px 8px; border-radius: 12px; margin-left: 10px;" title="vol番号未検出">?</span>`;
+                        }
+                    }
                     
                     return `<div style="border: 1px solid #ddd; border-radius: 8px; padding: 12px; margin: 8px 0;">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
