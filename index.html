@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>重複チェックツール v0.22</title>
+    <title>重複チェックツール v0.23</title>
     
     <!-- カスタムスタイル -->
     <link rel="stylesheet" href="custom/styles.css">
@@ -31,12 +31,46 @@
         .data-area { background: #f8f9fa; border: 1px solid #dee2e6; padding: 8px; border-radius: 5px; font-family: monospace; min-height: 120px; }
         .hidden { display: none; }
         .user-info { background: #d4edda; color: #155724; padding: 6px; border-radius: 5px; margin-bottom: 8px; }
+        
+        /* サイドバータブのスタイル */
+        .main-layout { display: flex; gap: 20px; }
+        .sidebar-tabs { 
+            width: 200px; 
+            background: #f8f9fa; 
+            border-radius: 10px; 
+            padding: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .sidebar-tab-button {
+            width: 100%;
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 12px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-bottom: 10px;
+            text-align: left;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        .sidebar-tab-button:hover {
+            background: #5a6268;
+            transform: translateX(5px);
+        }
+        .sidebar-tab-button.active {
+            background: #007bff;
+            box-shadow: 0 2px 5px rgba(0,123,255,0.3);
+        }
+        .content-area {
+            flex: 1;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="app-header">
-            <h1 class="app-title">🔍 重複チェックツール v0.22</h1>
+            <h1 class="app-title">🔍 重複チェックツール v0.23</h1>
             <p class="app-subtitle">テキスト重複検出システム - Firebase + Google認証</p>
         </div>
         <!-- 認証セクション -->
@@ -51,14 +85,29 @@
             <button class="logout-button" onclick="handleLogout()">ログアウト</button>
         </div>
 
-        <!-- タブナビゲーション -->
-        <div class="tab-navigation hidden" id="tabNavigation" style="margin: 20px 0;">
-            <button class="tab-button active" onclick="switchTab('duplicate')" style="background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 5px 5px 0 0; cursor: pointer; margin-right: 5px;">🔍 重複チェック</button>
-            <button class="tab-button" onclick="switchTab('other')" style="background: #6c757d; color: white; border: none; padding: 10px 20px; border-radius: 5px 5px 0 0; cursor: pointer;">📋 その他機能</button>
-        </div>
+        <!-- メインレイアウト（サイドバー + コンテンツ） -->
+        <div class="main-layout">
+            <!-- 左側のサイドバータブ -->
+            <div class="sidebar-tabs">
+                <h4 style="margin: 0 0 15px 5px; color: #333;">📋 メニュー</h4>
+                <button class="sidebar-tab-button active" onclick="switchTab('duplicate')">
+                    🔍 重複チェック
+                </button>
+                <button class="sidebar-tab-button" onclick="switchTab('other')">
+                    📋 その他機能
+                </button>
+                <button class="sidebar-tab-button" onclick="switchTab('settings')">
+                    ⚙️ 設定
+                </button>
+                <button class="sidebar-tab-button" onclick="switchTab('help')">
+                    ❓ ヘルプ
+                </button>
+            </div>
 
-        <!-- データ入力セクション -->
-        <div class="weight-input hidden tab-content" id="weightInput" data-tab="duplicate">
+            <!-- 右側のコンテンツエリア -->
+            <div class="content-area">
+                <!-- データ入力セクション -->
+                <div class="weight-input hidden tab-content" id="weightInput" data-tab="duplicate">
             <div class="input-card">
                 <h3>📄 データを入力</h3>
                 
@@ -117,20 +166,51 @@
                     ファイルデータを読み込み中...<br>
                 </div>
             </div>
-        </div>
+                </div>
 
-        <!-- その他機能タブ -->
-        <div class="hidden tab-content" id="otherTab" data-tab="other" style="background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
-            <h3>📋 その他の機能</h3>
-            <div style="margin: 20px 0;">
-                <p>ここに新しい機能を追加できます。例：</p>
-                <ul>
-                    <li>📊 統計情報の表示</li>
-                    <li>🔄 データのエクスポート/インポート</li>
-                    <li>⚙️ 詳細設定</li>
-                    <li>📈 分析レポート</li>
-                </ul>
-                <button class="save-button" onclick="log('📋 その他機能タブがクリックされました')" style="margin-top: 10px;">テスト機能</button>
+                <!-- その他機能タブ -->
+                <div class="hidden tab-content" id="otherTab" data-tab="other">
+                    <h3>📋 その他の機能</h3>
+                    <div style="margin: 20px 0;">
+                        <p>ここに新しい機能を追加できます。例：</p>
+                        <ul>
+                            <li>📊 統計情報の表示</li>
+                            <li>🔄 データのエクスポート/インポート</li>
+                            <li>⚙️ 詳細設定</li>
+                            <li>📈 分析レポート</li>
+                        </ul>
+                        <button class="save-button" onclick="log('📋 その他機能タブがクリックされました')" style="margin-top: 10px;">テスト機能</button>
+                    </div>
+                </div>
+
+                <!-- 設定タブ -->
+                <div class="hidden tab-content" id="settingsTab" data-tab="settings">
+                    <h3>⚙️ 設定</h3>
+                    <div style="margin: 20px 0;">
+                        <p>アプリケーションの設定：</p>
+                        <ul>
+                            <li>🎨 テーマ設定</li>
+                            <li>🔔 通知設定</li>
+                            <li>💾 データ管理</li>
+                            <li>🔐 セキュリティ設定</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- ヘルプタブ -->
+                <div class="hidden tab-content" id="helpTab" data-tab="help">
+                    <h3>❓ ヘルプ</h3>
+                    <div style="margin: 20px 0;">
+                        <h4>使い方：</h4>
+                        <ol>
+                            <li>Googleアカウントでログイン</li>
+                            <li>ファイルをアップロードまたはテキストを入力</li>
+                            <li>キーワードで検索</li>
+                            <li>vol番号が自動的に表示されます</li>
+                        </ol>
+                        <p>バージョン: v0.23</p>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -520,23 +600,23 @@
                 content.classList.add('hidden');
             });
             
-            // すべてのタブボタンのスタイルをリセット
-            document.querySelectorAll('.tab-button').forEach(button => {
-                button.style.background = '#6c757d';
+            // すべてのサイドバーボタンのスタイルをリセット
+            document.querySelectorAll('.sidebar-tab-button').forEach(button => {
                 button.classList.remove('active');
             });
             
             // 選択されたタブを表示
-            if (tabName === 'duplicate') {
-                document.getElementById('weightInput').classList.remove('hidden');
-                document.querySelector('[onclick="switchTab(\'duplicate\')"]').style.background = '#007bff';
-                document.querySelector('[onclick="switchTab(\'duplicate\')"]').classList.add('active');
-                log('🔍 重複チェックタブに切り替えました');
-            } else if (tabName === 'other') {
-                document.getElementById('otherTab').classList.remove('hidden');
-                document.querySelector('[onclick="switchTab(\'other\')"]').style.background = '#007bff';
-                document.querySelector('[onclick="switchTab(\'other\')"]').classList.add('active');
-                log('📋 その他機能タブに切り替えました');
+            const tabMap = {
+                'duplicate': { element: 'weightInput', log: '🔍 重複チェックタブに切り替えました' },
+                'other': { element: 'otherTab', log: '📋 その他機能タブに切り替えました' },
+                'settings': { element: 'settingsTab', log: '⚙️ 設定タブに切り替えました' },
+                'help': { element: 'helpTab', log: '❓ ヘルプタブに切り替えました' }
+            };
+            
+            if (tabMap[tabName]) {
+                document.getElementById(tabMap[tabName].element).classList.remove('hidden');
+                document.querySelector(`[onclick="switchTab('${tabName}')"]`).classList.add('active');
+                log(tabMap[tabName].log);
             }
         };
 
@@ -544,7 +624,6 @@
         function showUserInterface(user) {
             document.getElementById('authSection').classList.add('hidden');
             document.getElementById('userInfo').classList.remove('hidden');
-            document.getElementById('tabNavigation').classList.remove('hidden');
             document.getElementById('weightInput').classList.remove('hidden');
             document.getElementById('userName').textContent = user.displayName;
             
@@ -555,9 +634,10 @@
         function showLoginInterface() {
             document.getElementById('authSection').classList.remove('hidden');
             document.getElementById('userInfo').classList.add('hidden');
-            document.getElementById('tabNavigation').classList.add('hidden');
             document.getElementById('weightInput').classList.add('hidden');
             document.getElementById('otherTab').classList.add('hidden');
+            document.getElementById('settingsTab').classList.add('hidden');
+            document.getElementById('helpTab').classList.add('hidden');
         }
 
         // ファイル内容表示機能
