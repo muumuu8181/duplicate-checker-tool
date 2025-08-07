@@ -1,6 +1,6 @@
 {
   "name": "duplicate-checker-tool",
-  "version": "0.27.0",
+  "version": "0.28.0",
   "description": "Firebase + Google認証によるテキスト重複検出システム - Universal Template採用",
   "main": "index.html",
   "scripts": {
