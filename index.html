@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>重複チェックツール v0.17</title>
+    <title>重複チェックツール v0.18</title>
     
     <!-- カスタムスタイル -->
     <link rel="stylesheet" href="custom/styles.css">
@@ -36,7 +36,7 @@
 <body>
     <div class="container">
         <div class="app-header">
-            <h1 class="app-title">🔍 重複チェックツール v0.17</h1>
+            <h1 class="app-title">🔍 重複チェックツール v0.18</h1>
             <p class="app-subtitle">テキスト重複検出システム - Firebase + Google認証</p>
         </div>
         <!-- 認証セクション -->
@@ -76,8 +76,7 @@
                 <!-- テキスト入力エリア -->
                 <div id="textInputArea" class="hidden">
                     <div style="border: 2px solid #ddd; border-radius: 10px; padding: 10px; margin: 10px 0; background: #f9f9f9;">
-                        <p style="margin: 0 0 10px 0; color: #666; font-size: 14px;">✏️ テキストを直接入力またはクリップボードから貼り付けてください</p>
-                        <input type="text" class="input-field" id="textTitle" placeholder="タイトルを入力してください" style="margin-bottom: 10px;">
+                        <p style="margin: 0 0 10px 0; color: #666; font-size: 14px;">✏️ テキストを直接入力またはクリップボードから貼り付けてください（タイトルは自動生成されます）</p>
                         <textarea class="input-field" id="textContent" placeholder="ここにテキストを入力または貼り付けてください..." rows="8" style="resize: vertical;"></textarea>
                         <div style="text-align: right; margin-top: 5px;">
                             <button type="button" onclick="pasteFromClipboard()" style="background: #28a745; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 12px;">📋 クリップボードから貼り付け</button>
@@ -198,10 +197,32 @@
 
         // テキスト入力クリア
         window.clearTextInput = () => {
-            document.getElementById('textTitle').value = '';
             document.getElementById('textContent').value = '';
             log('🗑️ テキスト入力をクリアしました');
         };
+
+        // タイトル自動生成
+        function generateAutoTitle(content) {
+            const now = new Date();
+            const timestamp = now.toLocaleString('ja-JP', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit'
+            }).replace(/[\/\s:]/g, '-');
+            
+            // 内容の最初の30文字を取得（改行や特殊文字を除去）
+            const firstLine = content.split('\n')[0].trim();
+            const preview = firstLine.length > 30 ? firstLine.substring(0, 30) + '...' : firstLine;
+            
+            // 内容がある場合は内容ベース、ない場合は日時ベース
+            if (preview && preview.length > 3) {
+                return `${preview} (${timestamp})`;
+            } else {
+                return `テキスト-${timestamp}`;
+            }
+        }
 
         // ドラッグ&ドロップ機能の設定
         function setupDragAndDrop() {
@@ -351,11 +372,10 @@
                 }
             } else {
                 // テキスト保存処理
-                const title = document.getElementById('textTitle').value;
                 const content = document.getElementById('textContent').value;
 
-                if (!title.trim() || !content.trim()) {
-                    log('❌ タイトルと内容を入力してください');
+                if (!content.trim()) {
+                    log('❌ テキスト内容を入力してください');
                     return;
                 }
 
@@ -365,8 +385,11 @@
                     const now = new Date();
                     const userRef = database.ref(`users/${currentUser.uid}/files`);
                     
+                    // タイトルを自動生成
+                    const autoTitle = generateAutoTitle(content.trim());
+                    
                     const textData = {
-                        fileName: title.trim(),
+                        fileName: autoTitle,
                         fileSize: new Blob([content]).size,
                         fileType: 'text/plain',
                         content: content.trim(),
@@ -378,10 +401,9 @@
                     };
 
                     await userRef.push(textData);
-                    log(`✅ 保存完了: ${title.trim()} (${Math.round(textData.fileSize/1024)}KB)`);
+                    log(`✅ 保存完了: ${autoTitle} (${Math.round(textData.fileSize/1024)}KB)`);
                     
                     // 入力フィールドをクリア
-                    document.getElementById('textTitle').value = '';
                     document.getElementById('textContent').value = '';
                     
                 } catch (error) {
