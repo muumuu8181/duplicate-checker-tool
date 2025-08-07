@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>重複チェックツール v0.16</title>
+    <title>重複チェックツール v0.17</title>
     
     <!-- カスタムスタイル -->
     <link rel="stylesheet" href="custom/styles.css">
@@ -36,7 +36,7 @@
 <body>
     <div class="container">
         <div class="app-header">
-            <h1 class="app-title">🔍 重複チェックツール v0.16</h1>
+            <h1 class="app-title">🔍 重複チェックツール v0.17</h1>
             <p class="app-subtitle">テキスト重複検出システム - Firebase + Google認証</p>
         </div>
         <!-- 認証セクション -->
@@ -88,6 +88,22 @@
 
                 <textarea class="input-field" id="memoInput" placeholder="メモ (オプション)" rows="2"></textarea>
                 <button class="save-button" onclick="saveData()">💾 保存</button>
+            </div>
+            
+            <div class="input-card">
+                <h3>🔍 キーワード検索</h3>
+                <div style="display: flex; gap: 10px; margin: 10px 0;">
+                    <input type="text" class="input-field" id="searchKeyword" placeholder="検索キーワードを入力..." style="flex: 1;" onkeydown="if(event.key === 'Enter') searchFiles()">
+                    <button class="save-button" onclick="searchFiles()" style="background: #17a2b8; padding: 10px 16px;">🔍 検索</button>
+                    <button class="universal-copy-btn" onclick="clearSearch()" style="background: #6c757d; color: white; border: none; padding: 10px 16px; border-radius: 5px; cursor: pointer;">🗑️ クリア</button>
+                </div>
+                
+                <!-- 検索結果表示エリア -->
+                <div id="searchResults" class="hidden">
+                    <h4 style="margin: 10px 0 5px 0; color: #17a2b8;">📊 検索結果</h4>
+                    <div class="data-area" id="searchResultsDisplay">
+                    </div>
+                </div>
             </div>
             
             <div class="input-card">
@@ -479,6 +495,132 @@
         window.hideFileContent = () => {
             document.getElementById('fileContentSection').classList.add('hidden');
             log('📝 ファイル内容を非表示にしました');
+        };
+
+        // キーワード検索機能
+        window.searchFiles = async () => {
+            if (!currentUser) {
+                log('❌ ログインが必要です');
+                return;
+            }
+
+            const keyword = document.getElementById('searchKeyword').value.trim();
+            if (!keyword) {
+                log('❌ 検索キーワードを入力してください');
+                return;
+            }
+
+            try {
+                log(`🔍 キーワード「${keyword}」で検索開始...`);
+                
+                const userRef = database.ref(`users/${currentUser.uid}/files`);
+                const snapshot = await userRef.once('value');
+                const data = snapshot.val();
+                
+                if (!data) {
+                    log('📂 検索対象のファイルがありません');
+                    return;
+                }
+
+                const allFiles = Object.entries(data).map(([key, value]) => ({ id: key, ...value }));
+                const searchResults = [];
+                
+                // 各ファイルの内容からキーワードを検索
+                allFiles.forEach(file => {
+                    const contentLower = file.content.toLowerCase();
+                    const keywordLower = keyword.toLowerCase();
+                    
+                    if (contentLower.includes(keywordLower)) {
+                        // キーワードを含む行を抽出（前後2行も含む）
+                        const lines = file.content.split('\n');
+                        const matchingLines = [];
+                        
+                        lines.forEach((line, index) => {
+                            if (line.toLowerCase().includes(keywordLower)) {
+                                const start = Math.max(0, index - 2);
+                                const end = Math.min(lines.length - 1, index + 2);
+                                const context = lines.slice(start, end + 1).join('\n');
+                                matchingLines.push({
+                                    lineNumber: index + 1,
+                                    context: context,
+                                    matchingLine: line
+                                });
+                            }
+                        });
+
+                        if (matchingLines.length > 0) {
+                            searchResults.push({
+                                ...file,
+                                matches: matchingLines
+                            });
+                        }
+                    }
+                });
+
+                // 検索結果表示
+                displaySearchResults(keyword, searchResults);
+                
+            } catch (error) {
+                log(`❌ 検索エラー: ${error.message}`);
+            }
+        };
+
+        // 検索結果表示
+        function displaySearchResults(keyword, results) {
+            const resultsSection = document.getElementById('searchResults');
+            const resultsDisplay = document.getElementById('searchResultsDisplay');
+            
+            if (results.length === 0) {
+                resultsDisplay.innerHTML = `<p style="color: #6c757d;">キーワード「${keyword}」を含むファイルは見つかりませんでした。</p>`;
+                log(`🔍 検索完了: 「${keyword}」のマッチなし`);
+            } else {
+                const resultHtml = results.map(file => {
+                    const fileSize = Math.round(file.fileSize / 1024);
+                    const uploadDate = new Date(file.createdAt).toLocaleDateString('ja-JP');
+                    const inputTypeIcon = file.inputType === 'text' ? '📝' : '📁';
+                    
+                    const matchesHtml = file.matches.slice(0, 3).map(match => {
+                        const highlightedLine = match.matchingLine.replace(
+                            new RegExp(keyword, 'gi'),
+                            `<mark style="background: #ffeb3b; padding: 2px 4px; border-radius: 3px;">$&</mark>`
+                        );
+                        return `<div style="margin: 5px 0; padding: 8px; background: #f8f9fa; border-radius: 5px; border-left: 3px solid #17a2b8;">
+                            <small style="color: #666;">行 ${match.lineNumber}:</small><br>
+                            <span style="font-family: monospace; font-size: 13px;">${highlightedLine}</span>
+                        </div>`;
+                    }).join('');
+                    
+                    const moreMatches = file.matches.length > 3 ? `<small style="color: #666;">...他 ${file.matches.length - 3} 件のマッチ</small>` : '';
+                    
+                    return `<div style="border: 1px solid #ddd; border-radius: 8px; padding: 12px; margin: 8px 0;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <strong>${inputTypeIcon} ${file.fileName}</strong>
+                            <small style="color: #666;">${fileSize}KB - ${uploadDate}</small>
+                        </div>
+                        <div style="color: #17a2b8; font-size: 14px; margin-bottom: 8px;">
+                            📊 ${file.matches.length} 件のマッチ
+                        </div>
+                        ${matchesHtml}
+                        ${moreMatches}
+                        <div style="text-align: right; margin-top: 8px;">
+                            <button onclick="showFileContent('${file.id}', '${file.fileName}', \`${file.content.replace(/`/g, '\\`').replace(/\\/g, '\\\\')}\`)" style="background: #17a2b8; color: white; border: none; padding: 4px 8px; border-radius: 3px; cursor: pointer; font-size: 12px;">📄 全文表示</button>
+                        </div>
+                    </div>`;
+                }).join('');
+                
+                resultsDisplay.innerHTML = resultHtml;
+                log(`🔍 検索完了: 「${keyword}」が ${results.length} 件のファイルでマッチ`);
+            }
+            
+            resultsSection.classList.remove('hidden');
+        }
+
+        // 検索クリア
+        window.clearSearch = () => {
+            document.getElementById('searchKeyword').value = '';
+            document.getElementById('searchResults').classList.add('hidden');
+            document.getElementById('searchResultsDisplay').innerHTML = '';
+            log('🗑️ 検索結果をクリアしました');
         };
 
         // ログ出力関数
